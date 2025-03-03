@@ -1,0 +1,203 @@
+/* User Menu Overlay (Covers the whole screen) */
+.user-menu-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.6); /* Dark overlay */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 5000;
+}
+
+/* User Menu Panel */
+.user-menu {
+    background: rgba(255, 255, 255, 0.2); /* Transparent White Background */
+    width: 80%;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+    position: relative;
+    z-index: 5100;
+    display: flex;
+    flex-direction: column; /* Ensure correct layout */
+    align-items: flex-start;
+}
+
+/* User Menu Title Section */
+.um-title {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    padding-bottom: 0.625rem;
+}
+
+/* Avatar Styling */
+.um-avatar {
+    width: 8rem;
+    height: 8rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.icon-avatar {
+    width: 100%;
+    height: auto;
+    border-radius: 50%;
+}
+
+/* ✅ Wrap message and sign-out button for proper stacking */
+.um-user-info {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    margin-left: 0.625rem;
+}
+
+/* User Menu Message */
+.um-message {
+    font-size: clamp(1rem, 2vw, 1.5rem); /* ✅ Font scales between 1rem and 1.5rem */
+    font-weight: bold;
+    text-align: left;
+    margin-bottom: 0.3125rem;
+}
+
+.um-message h2 {
+    font-size: clamp(2rem, 4vw, 3.75rem); /* ✅ Font scales dynamically between 2rem and 3.75rem */
+    font-weight: 500;
+}
+
+/* ✅ Sign Out Button Directly Below um-message */
+.um-sign-out {
+    display: block;
+    margin-top: 0.3125rem;
+}
+
+/* Sign Out Button */
+.um-signout-submit {
+    background: #DAE0E51A;
+    color: rgba(255, 255, 255, 0.5);
+    border: none;
+    padding: 0.625rem 1.25rem;
+    font-size: clamp(0.875rem, 1.5vw, 1rem); /* ✅ Font scales dynamically */
+    border-radius: 0.3125rem;
+    cursor: pointer;
+    transition: background 0.3s;
+}
+
+.um-signout-submit:hover {
+    background: #99d9d7;
+    color: #1A2485;
+}
+
+/* Close Button */
+.user-menu-close {
+    position: absolute;
+    top: 0.625rem;
+    right: 0.9375rem;
+    border: none;
+    background: none;
+    font-size: clamp(1.25rem, 2vw, 1.5rem); /* ✅ Font scales dynamically */
+    cursor: pointer;
+}
+
+.user-menu-close:hover {
+    color: red;
+}
+
+/* User Menu Buttons Container */
+.user-menu-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 1.25rem;
+    margin: 4.6875rem 0;
+    width: 100%;
+}
+
+/* Individual Button Styles */
+.user-menu-button {
+    width: 17.2rem;
+    height: 12.5rem;
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+    font-size: clamp(1.2rem, 2vw, 2rem); /* ✅ Smaller but still scales dynamically */
+    font-weight: 500;
+    border: none;
+    border-radius: 0.625rem;
+    cursor: pointer;
+    transition: background 0.3s;
+    text-align: left;
+    padding: 0 1.25rem;
+}
+
+.user-menu-button:hover {
+    background: #1A2485;
+    color: #fff;
+}
+
+
+/* ✅ Why Search Inc View */
+.why-search-inc {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 2rem;
+    width: 100%;
+}
+
+/* ✅ Why Search Inc & Comparison Table View */
+.why-search-inc,
+.comparison-table {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 2rem;
+    width: 100%;
+}
+
+/* ✅ Shared Styling for Images */
+.why-search-inc-image,
+.comparison-table-image {
+    max-width: 100%;
+    height: auto;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    
+    /* ✅ Fade-in Effect */
+    opacity: 0;
+    transform: translateY(10px);
+    animation: fadeIn 0.5s ease-out forwards;
+}
+
+/* ✅ Back Button - Top Right Corner */
+.user-menu-back {
+    position: absolute;
+    top: 0.625rem;
+    right: 0.9375rem;
+    border: none;
+    background: none;
+    font-size: clamp(1.25rem, 2vw, 1.5rem); /* ✅ Scales dynamically */
+    cursor: pointer;
+    transition: color 0.3s ease-in-out;
+}
+
+/* ✅ Back Button Hover Effect */
+.user-menu-back:hover {
+    color: #DAE0E5; /* ✅ Subtle highlight effect */
+}
+
+
+/* ✅ Fade-in Animation */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}

@@ -1,0 +1,31 @@
+/* Fullscreen Video Background */
+.video-background {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover; /* Ensures the video covers the entire screen */
+    z-index: -1; /* Places the video behind all content */
+}
+
+/* Overlay Content (Ensures Navbar & Search Bar Appear Above Video) */
+.content-overlay {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    height: 100%;
+    display: block; /* ✅ Prevents flexbox centering */
+}
+
+
+/* Ensure Search Bar & Other Elements Stay Visible */
+.search-container {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    position: absolute;
+    top: 290px; /* ✅ Moves search bar exactly 290px from the top */
+    left: 0;
+}
+

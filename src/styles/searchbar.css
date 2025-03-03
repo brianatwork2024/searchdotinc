@@ -1,0 +1,452 @@
+/* Wrapper Container */
+.searchbar-container {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  position: absolute;
+  top: 290px !important;
+  left: 0;
+  width: 100%;
+  gap: 10px;
+  z-index: 10;
+}
+
+/* Search Bar */
+.search-bar {
+  display: flex;
+  align-items: flex-start;
+  width: 100%; /* ✅ Match searchbar-container width */
+  max-width: 80%; /* ✅ Cap at 80% of viewport */
+  border: none;
+  border-radius: 25px;
+  transition: width 0.2s ease-in-out, height 0.2s ease-in-out;
+  position: relative;
+  overflow: hidden;
+  min-height: 50px;
+  margin-left: 120px;
+}
+
+/* Search Input (Text Area) */
+.search-input {
+  flex-grow: 1;
+  background: transparent;
+  border: none;
+  color: white;
+  font-size: 36px;
+  font-family: "Roboto", sans-serif;
+  padding: 10px;
+  outline: none;
+  text-align: left;
+  word-wrap: break-word;
+  white-space: pre-wrap;
+  overflow: hidden;
+  line-height: 1.2;
+  resize: none;
+  min-height: 50px;
+  height: auto;
+  display: block;
+}
+
+/* Left Icon (Fixed Position) */
+.search-icon {
+  width: 60px;
+  height: 60px;
+  cursor: pointer;
+  position: absolute;
+  left: 10px;
+  top: 0;
+}
+
+/* Right Menu Icon (Fixed Position) */
+.menu-icon {
+  width: 60px;
+  height: 60px;
+  cursor: pointer;
+  position: absolute;
+  right: 10px;
+  top: 0;
+}
+
+/* Search Button (Aligns with Textarea) */
+.search-button {
+  position: absolute;
+  width: 40px;
+  height: 40px;
+  cursor: pointer;
+  transition: transform 0.1s ease-in-out;
+  right: 10px;
+}
+
+.search-width-measurer {
+  position: absolute;
+  visibility: hidden;
+  white-space: nowrap;
+  font-size: 36px;
+  font-family: "Roboto", sans-serif;
+  padding: 10px;
+}
+
+
+.hidden-text {
+  display: inline-block;
+  visibility: hidden;
+}
+
+/* CC Icon Wrapper */
+.cc-icon {
+  width: 60px;
+  height: 90px;
+  cursor: pointer;
+  position: absolute;
+  display: inline-block;
+  overflow: visible;
+  top: 0;
+  left: 10px;
+}
+
+/* Default Off State */
+.cc-icon::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 60px;
+  background-image: url("/images/cc-icon-off.svg");
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  transition: opacity 0.3s ease-in-out;
+  opacity: 1;
+}
+
+/* Hover (On State - 90px Image) */
+.cc-icon::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  width: 100%;
+  height: 90px;
+  background-image: url("/images/cc-icon-on.svg");
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  opacity: 0;
+  transition: opacity 0.3s ease-in-out;
+}
+
+/* Show On State When Hovering */
+.cc-icon:hover::before {
+  opacity: 0;
+}
+
+.cc-icon:hover::after {
+  opacity: 1;
+}
+
+/* Menu Icon (Fixed Position to Right) */
+.menu-icon {
+  width: 60px;
+  height: 90px;
+  position: absolute;
+  right: 10px;
+  top: 0;
+  cursor: pointer;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Default Off State */
+.menu-icon::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 60px;
+  background-image: url("/images/menu-icon-off.svg");
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  transition: opacity 0.3s ease-in-out;
+  opacity: 1;
+}
+
+/* Hover (On State - 90px Image) */
+.menu-icon::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  width: 100%;
+  height: 90px;
+  background-image: url("/images/menu-icon-on.svg");
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  opacity: 0;
+  transition: opacity 0.3s ease-in-out;
+}
+
+/* Show On State When Hovering */
+.menu-icon:hover::before {
+  opacity: 0;
+}
+
+.menu-icon:hover::after {
+  opacity: 1;
+}
+
+/* ✅ Search Results Styling */
+.search-results {
+  margin-top: 10px;
+  background: rgba(255, 255, 255, 0.2);
+  padding: 15px;
+  border-radius: 8px;
+  width: 100%;
+  max-width: 80%;
+  margin-left: 120px;
+}
+
+/* ✅ Result Text */
+.search-result-text {
+  font-size: clamp(1rem, 2vw, 1.5rem);
+  font-weight: bold;
+  color: white;
+}
+
+/* ✅ Placeholder Text */
+.search-placeholder {
+  font-size: clamp(1rem, 2vw, 1.5rem);
+  color: rgba(255, 255, 255, 0.8);
+  margin-top: 8px;
+}
+
+/* ✅ YES & NO Buttons */
+.search-result-buttons {
+  display: flex;
+  gap: 10px;
+  margin-top: 12px;
+  margin-left: 120px;
+}
+
+/* ✅ Same styling as Sign Out Button */
+.yes-button,
+.no-button {
+  background: #DAE0E51A;
+  color: rgba(255, 255, 255, 0.5);
+  border: none;
+  padding: 0.625rem 1.25rem;
+  font-size: clamp(0.875rem, 1.5vw, 1rem);
+  border-radius: 0.3125rem;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+.yes-button:hover,
+.no-button:hover {
+  background: #99d9d7;
+  color: #1A2485;
+}
+
+/* Additional Results */
+.additional-results {
+  margin-top: 20px;
+  background: rgba(255, 255, 255, 0.07);
+  padding: 15px;
+  border-radius: 8px;
+  width: 100%;
+  max-width: 80%;
+  margin-left: 120px;
+  margin-top: 50px;
+  position: relative;
+}
+
+/* Tabs Above Additional Results */
+.results-tabs {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-bottom: 10px;
+  margin-right: 50px;
+  top: -39px;
+  right: 0;
+  position: absolute;
+}
+
+/* Tab Buttons */
+.tab-button {
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  font-size: clamp(0.875rem, 1.5vw, 1rem);
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+.tab-button.active {
+  background: #99d9d7;
+  color: #1A2485;
+}
+
+.tab-button:hover {
+  background: #1A2485;
+  color: #fff;
+}
+
+/* Search Result Items */
+.search-result-item, .search-message {
+  padding: 12px;
+  border-radius: 5px;
+  margin-bottom: 8px;
+  color: white;
+  font-size: clamp(1rem, 2vw, 1.2rem);
+  transition: background-color 0.2s ease;
+}
+
+.search-result-item:hover {
+  cursor: pointer;
+  background-color: rgba(255, 255, 255, 0.2);
+}
+
+.search-result-item.no-hover:hover {
+  background-color: transparent;
+  cursor: default;
+}
+
+/* ✅ Notification Brief Container */
+.notification-section {
+  margin-bottom: 25px;
+}
+.notification-brief {
+  margin-top: 10px;
+  background: rgba(255, 255, 255, 0.2);
+  padding: 15px;
+  border-radius: 8px;
+  width: 100%;
+  max-width: 80%;
+  margin-left: 120px;
+}
+
+.notification-brief-container button {
+  margin-left: 120px;
+}
+
+.notification-brief h3 {
+  text-transform: uppercase;
+  margin-bottom: 25px;
+}
+
+/* ✅ Notification Brief Items */
+.notification-brief-item {
+  margin-bottom: 15px;
+}
+
+/* ✅ Heading Styles */
+.notification-brief-item h2 {
+  font-size: clamp(1.1rem, 1.8vw, 1.3rem);
+  font-weight: bold;
+  color: white;
+  margin: 0 0 5px 0;
+}
+
+/* ✅ Content Styles */
+.notification-brief-item p {
+  font-size: clamp(0.9rem, 1.5vw, 1.1rem);
+  color: rgba(255, 255, 255, 0.9);
+  margin: 0;
+  line-height: 1.5;
+}
+
+/* ✅ Circle Container for Toggle */
+.circle-container {
+  display: flex;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  gap: 20px;
+  padding: 20px 0;
+  width: 1250px;
+  max-width: 100%;
+  scrollbar-width: thin;
+  user-select: none;
+  cursor: grab;
+}
+
+/* ✅ Active Drag State */
+.circle-container:active {
+  cursor: grabbing;
+}
+
+/* ✅ Scrollbar Styling for Webkit Browsers */
+.circle-container::-webkit-scrollbar {
+  height: 8px;
+}
+
+.circle-container::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.circle-container::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.5);
+  border-radius: 4px;
+}
+
+.circle-container::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.8);
+}
+
+/* ✅ Circles */
+.circle {
+  width: 400px;
+  height: 400px;
+  background: rgba(46, 58, 68, 0.8);
+  border: 2px solid #fff;
+  border-radius: 50%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+  flex-shrink: 0;
+  text-align: center;
+}
+
+/* ✅ Snippet Text Inside Circles */
+.circle-text {
+  font-size: 22px;
+  color: white;
+  line-height: 1.5;
+  margin: 0;
+  display: block;
+  max-width: 90%;
+}
+
+/* ✅ Preloader Container */
+.preloader-container {
+  margin-top: 20px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  max-width: 80%;
+  margin-left: 120px;
+}
+
+/* ✅ Spinner */
+.spinner {
+  width: 50px;
+  height: 50px;
+  border: 5px solid rgba(255, 255, 255, 0.3);
+  border-top: 5px solid #fff;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+/* ✅ Spin Animation */
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}

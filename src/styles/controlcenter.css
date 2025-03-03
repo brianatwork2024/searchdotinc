@@ -1,0 +1,680 @@
+/* Control Center Overlay */
+.control-center-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.6);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 5000;
+}
+
+/* Control Center Panel */
+.control-center {
+    background: rgba(255, 255, 255, 0.2);
+    width: 80%;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+    position: relative;
+    z-index: 5100;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+/* Control Center Title Section */
+.cc-title {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    padding-bottom: 0.625rem;
+}
+
+/* Avatar Styling */
+.cc-avatar {
+    width: 8rem;
+    height: 8rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.icon-avatar {
+    width: 100%;
+    height: auto;
+    border-radius: 50%;
+}
+
+/* User Info Section */
+.cc-user-info {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    margin-left: 0.625rem;
+}
+
+/* Control Center Message */
+.cc-message {
+    font-size: clamp(1rem, 2vw, 1.5rem);
+    font-weight: bold;
+    text-align: left;
+    margin-bottom: 0.3125rem;
+}
+
+.cc-message h2 {
+    font-size: clamp(1.25rem, 3.25vw, 3.75rem);
+    font-weight: 500;
+}
+
+/* ✅ Sign Out Button - BELOW cc-message */
+.cc-sign-out {
+    display: block;
+    margin-top: 0.5rem;
+}
+
+/* Sign Out Button */
+.signout-submit {
+    background: #DAE0E51A;
+    color: rgba(255, 255, 255, 0.5);
+    border: none;
+    padding: 0.625rem 1.25rem;
+    font-size: clamp(0.875rem, 1.5vw, 1rem);
+    border-radius: 0.3125rem;
+    cursor: pointer;
+    transition: background 0.3s;
+}
+
+.signout-submit:hover {
+    background: #99d9d7;
+    color: #1A2485;
+}
+
+/* Close Button (Only in Default Panel) */
+.control-center-close {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+}
+
+/* Back Button (Replaces Close Button when in Sub-Panels) */
+.control-center-back {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    background: none;
+    border: none;
+    cursor: pointer;
+}
+
+.control-center-back img {
+    width: 24px;
+    height: 24px;
+}
+
+/* ✅ Control Center Buttons */
+.cc-buttons {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin: 3rem 0;
+    width: 100%;
+}
+
+.cc-button {
+    width: clamp(10rem, 22%, 17.2rem);
+    height: clamp(6rem, 15vh, 12.5rem);
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+    font-size: clamp(1rem, 2vw, 2rem);
+    font-weight: 500;
+    border: none;
+    border-radius: 0.625rem;
+    cursor: pointer;
+    transition: background 0.3s;
+    text-align: left;
+    padding: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Hover Effect */
+.cc-button:hover {
+    background: #1A2485;
+    color: #fff;
+}
+
+/* ✅ ACCURACY CONTROLS */
+.accuracy-controls {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    padding: 2rem 0;
+    border-top: 2px solid #DAE0E580;
+}
+
+.accuracy-columns {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+    gap: 1rem;
+    padding: 0 2rem;
+}
+
+/* ✅ Columns are now 33% width each */
+.accuracy-column {
+    width: 33%;
+    display: flex;
+    flex-direction: column;
+}
+
+/* ✅ Control Settings Section */
+.control-settings-options {
+    display: flex;
+    flex-direction: row;
+    gap: 0.75rem;
+    align-items: center;
+    justify-content: center;
+}
+
+.control-option {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 33%;
+}
+
+/* ✅ Control Settings Buttons */
+.control-settings-option {
+    font-size: 20px;
+    background: transparent;
+    color: white;
+    border: none;
+    text-transform: uppercase;
+    font-weight: bold;
+    cursor: pointer;
+    border-radius: 5px;
+    text-align: center;
+    transition: color 0.3s ease-in-out;
+}
+
+/* ✅ Hover Effect */
+.control-settings-option:hover {
+    color: #31DA89;
+}
+
+/* ✅ Active Button State */
+.control-settings-option.active {
+    color: #31DA89;
+}
+
+/* ✅ Checkmark Styling */
+.checkmark {
+    font-size: 1.5rem;
+    color: transparent; /* Hidden by default */
+    margin-bottom: 0.5rem;
+}
+
+/* ✅ Only Show Active Checkmark */
+.checkmark.active {
+    color: #31DA89;
+}
+
+
+/* ✅ Accuracy Score Container */
+.accuracy-score-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 1rem; /* ✅ Adds spacing below */
+}
+
+/* ✅ Responsive Accuracy Score */
+.accuracy-score {
+    font-size: clamp(3rem, 10vw, 8rem); /* ✅ Dynamically scales */
+    font-weight: bold;
+    color: #88B8D5;
+    text-align: center;
+}
+
+/* ✅ Accuracy Score Label */
+.accuracy-score-label {
+    font-size: clamp(1rem, 2vw, 1.5rem);
+    color: white;
+    text-align: center;
+}
+
+
+
+
+
+
+/* ✅ Data Type Section */
+.data-type-container {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: space-between;
+    width: 100%;
+}
+
+.data-type-row {
+    width: 100%;
+    margin: 0.75rem 0;
+}
+
+/* ✅ Data Type Buttons */
+.data-type-button {
+    background: transparent;
+    border: none;
+    color: white;
+    font-size: 24px;
+    font-style: italic;
+    font-weight: 500;
+    text-align: left;
+    cursor: pointer;
+    width: 100%;
+    transition: color 0.3s ease-in-out;
+}
+
+/* ✅ Hover State */
+.data-type-button:hover {
+    color: #31DA89;
+}
+
+/* ✅ Your Controls Section */
+.your-controls {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    width: 100%;
+}
+
+/* ✅ Each Row */
+.control-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    margin: 0.75rem 0;
+}
+
+/* ✅ Control Setting Label */
+.control-label {
+    font-size: 18px;
+    color: white;
+    font-weight: 500;
+    flex: 1;
+}
+
+/* ✅ Radio Button Group */
+.radio-group {
+    display: flex;
+    gap: 1.5rem;
+}
+
+/* ✅ Individual Radio Option */
+.radio-option {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+}
+
+/* ✅ Show Default Radio Input */
+.radio-option input[type="radio"] {
+    appearance: none; /* Remove default styling */
+    width: 16px;
+    height: 16px;
+    border: 2px solid rgba(255, 255, 255, 0.7);
+    border-radius: 50%;
+    outline: none;
+    cursor: pointer;
+    display: inline-block;
+    position: relative;
+}
+
+/* ✅ Active State - Inner Circle */
+.radio-option input[type="radio"]:checked {
+    border-color: #31DA89;
+    background-color: transparent;
+}
+
+/* ✅ Custom Inner Circle */
+.radio-option input[type="radio"]:checked::before {
+    content: "";
+    width: 8px;
+    height: 8px;
+    background: #31DA89;
+    border-radius: 50%;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+/* ✅ Custom Styled Radio Labels */
+.radio-label {
+    font-size: 24px;
+    color: rgba(255, 255, 255, 0.7);
+    font-weight: bold;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: color 0.3s ease-in-out;
+}
+
+/* ✅ Active State - Changes Color */
+.radio-option input[type="radio"]:checked + .radio-label {
+    color: #31DA89;
+}
+
+
+/* ✅ Nuclear Icon Container */
+.nuclear-icon-container {
+    position: relative;
+    left: 2rem; /* Aligns with Control Settings */
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    align-items: center;
+}
+
+/* ✅ Nuclear Icon */
+.nuclear-icon {
+    width: 181px;
+    height: auto;
+}
+
+.nuclear-option {
+    width: 100%;
+    text-align: center;
+}
+
+.nuclear-option p {
+    font-size: 24px;
+}
+
+.go-nuclear-container {
+    padding: 40px 0;
+    width: 80%;
+    margin: 0 auto;
+}
+
+.go-nuclear-container p {
+    text-align: left;
+}
+
+.go-nuclear-button {
+    height: 200px;
+    padding-bottom: 40px;
+}
+
+/* ✅ Username Data View */
+.username-data-view {
+    text-align: left;
+    margin: 0 auto;
+    width: 90%;
+}
+
+.username-data-view p {
+    font-size: 20px;
+}
+
+/* ✅ Indented Bullet Points */
+.username-data-list {
+    list-style-type: disc;
+    margin-left: 2rem; /* ✅ Adds indentation */
+    padding-left: 1rem;
+    padding-top: 2rem;
+}
+
+.username-data-list li {
+    margin-bottom: 0.75rem; /* ✅ Spacing between items */
+    font-size: 1.2rem;
+    color: #ffffff;
+    line-height: 1.5;
+}
+
+/* General Tooltip Styling */
+.tooltip {
+    position: absolute;
+    background-color: #156082;
+    width: 500px; /* ✅ Increased width */
+    height: auto; /* ✅ Auto adjusts to content */
+    padding: 15px;
+    border-radius: 10px;
+    color: white;
+    font-size: 14px;
+    font-weight: normal;
+    text-align: left;
+    line-height: 1.5;
+    position: absolute;
+    top: 110%;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 10000;
+    opacity: 0;
+    transition: opacity 0.3s ease-in-out;
+    white-space: normal; /* ✅ Ensures text wraps */
+    overflow-wrap: break-word; /* ✅ Forces text to stay within the tooltip */
+    word-wrap: break-word; /* ✅ Ensures long words don't overflow */
+    max-width: 500px; /* ✅ Ensures it stays within 500px */
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.3); /* ✅ Adds slight shadow for better visibility */
+}
+
+/* ✅ Show Tooltip on Hover */
+.accuracy-score-container:hover .tooltip {
+    opacity: 1;
+}
+
+/* ✅ Accuracy Score Container - Ensure Positioning */
+.accuracy-score-container {
+    position: relative;
+    cursor: pointer;
+}
+
+/* ✅ Ensures Text Wrapping Properly */
+.accuracy-tooltip p {
+    margin: 8px 0;
+    word-break: break-word; /* ✅ Ensures long words wrap */
+}
+
+/* ✅ Ensures Strong Text is Styled Properly */
+.accuracy-tooltip strong {
+    font-size: 16px;
+    display: block;
+    margin-bottom: 10px;
+}
+
+/* ✅ Hashtag Styling */
+.hashtag {
+    font-weight: bold;
+    color: #F4D03F;
+    display: block;
+    margin-top: 10px;
+}
+
+/* Accuracy Score Updated Styling */
+.accuracy-score {
+    background-color: #156082;
+    height: auto;
+    padding: 15px;
+    border-radius: 10px;
+    color: white;
+    font-size: 14px;
+    font-weight: normal;
+    text-align: left;
+    line-height: 1.5;
+    white-space: normal;
+    overflow-wrap: break-word;
+    word-wrap: break-word;
+    max-width: 500px;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.3);
+    display: inline-block;
+    text-align: center;
+    font-size: clamp(3rem, 10vw, 5rem);
+    font-weight: bold;
+    padding: 15px 20px;
+    min-width: 120px;
+}
+
+/* Accuracy Tooltip (No Changes) */
+.accuracy-tooltip {
+    background-color: #156082;
+    height: auto;
+    padding: 15px;
+    border-radius: 10px;
+    color: white;
+    font-size: 14px;
+    font-weight: normal;
+    text-align: left;
+    line-height: 1.5;
+    position: absolute;
+    top: -170%; /* Adjusted to position tooltip above */
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 10000;
+    opacity: 0;
+    transition: opacity 0.3s ease-in-out;
+    white-space: normal;
+    overflow-wrap: break-word;
+    word-wrap: break-word;
+    max-width: 500px;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.3);
+}
+
+/* ✅ Show Tooltip on Hover */
+.accuracy-score-container:hover .accuracy-tooltip {
+    opacity: 1;
+}
+
+/* Username Data Tooltip */
+.username-tooltip {
+    position: absolute;
+    background-color: #156082;
+    width: 500px;
+    height: auto;
+    padding: 15px;
+    border-radius: 10px;
+    color: white;
+    font-size: 14px;
+    font-weight: normal;
+    text-align: left;
+    line-height: 1.5;
+    white-space: normal;
+    overflow-wrap: break-word;
+    word-wrap: break-word;
+    max-width: 500px;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.3);
+    opacity: 0;
+    transition: opacity 0.3s ease-in-out;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 10000;
+}
+
+/* ✅ Show Username Tooltip on Hover */
+.username-data-container:hover .username-tooltip {
+    opacity: 1;
+}
+
+/* Location Tooltip */
+.location-tooltip {
+    position: absolute;
+    background-color: #156082;
+    width: 500px;
+    height: auto;
+    padding: 15px;
+    border-radius: 10px;
+    color: white;
+    font-size: 14px;
+    font-weight: normal;
+    text-align: left;
+    line-height: 1.5;
+    white-space: normal;
+    overflow-wrap: break-word;
+    word-wrap: break-word;
+    max-width: 500px;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.3);
+    opacity: 0;
+    transition: opacity 0.3s ease-in-out;
+    top: -100%;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 10000;
+}
+
+/* Show Tooltip on Hover */
+.location-data-container:hover .location-tooltip {
+    opacity: 1;
+}
+/* ✅ Social Media Activity Tooltip */
+.social-media-tooltip {
+    position: absolute;
+    background-color: #156082;
+    width: 500px;
+    height: auto;
+    padding: 15px;
+    border-radius: 10px;
+    color: white;
+    font-size: 14px;
+    font-weight: normal;
+    text-align: left;
+    line-height: 1.5;
+    white-space: normal;
+    overflow-wrap: break-word;
+    word-wrap: break-word;
+    max-width: 500px;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.3);
+    opacity: 0;
+    transition: opacity 0.3s ease-in-out;
+    top: -100%; /* Adjusts the position dynamically */
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 10000;
+}
+
+/* ✅ Show Social Media Tooltip on Hover */
+.data-type-row:hover .social-media-tooltip {
+    opacity: 1;
+}
+
+/* ✅ Media Rich Search Tooltip */
+.media-rich-tooltip {
+    position: absolute;
+    background-color: #156082;
+    width: 500px;
+    height: auto;
+    padding: 15px;
+    border-radius: 10px;
+    color: white;
+    font-size: 14px;
+    font-weight: normal;
+    text-align: left;
+    line-height: 1.5;
+    white-space: normal;
+    overflow-wrap: break-word;
+    word-wrap: break-word;
+    max-width: 500px;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.3);
+    opacity: 0;
+    transition: opacity 0.3s ease-in-out;
+    z-index: 10000;
+}
+
+/* ✅ Show Media Rich Search Tooltip on Hover */
+.media-rich-data-container:hover .media-rich-tooltip {
+    opacity: 1;
+}
