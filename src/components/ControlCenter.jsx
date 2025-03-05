@@ -204,11 +204,24 @@ export default function ControlCenter({ isOpen, onClose, handleLogin }) {
                         if (setting === "Media Rich Search") setIsMediaRichHovered(false);
                       }}
                       onMouseMove={(event) => {
-                        if (setting === "Username Data") setUsernameTooltipPosition({ x: event.clientX + 10, y: event.clientY - 600 });
-                        if (setting === "Location") setLocationTooltipPosition({ x: event.clientX + 10, y: event.clientY - 500 });
-                        if (setting === "Social Media Activity") setSocialMediaTooltipPosition({ x: event.clientX + 10, y: event.clientY - 550 });
-                        if (setting === "Media Rich Search") setMediaRichTooltipPosition({ x: event.clientX + 10, y: event.clientY - 475 });
+                        const boundingRect = event.currentTarget.getBoundingClientRect();
+                        const offsetX = event.clientX - boundingRect.left;
+                        const offsetY = event.clientY - boundingRect.top;
+                      
+                        if (setting === "Username Data") {
+                          setUsernameTooltipPosition({ x: offsetX, y: offsetY });
+                        }
+                        if (setting === "Location") {
+                          setLocationTooltipPosition({ x: offsetX + 20, y: offsetY });
+                        }
+                        if (setting === "Social Media Activity") {
+                          setSocialMediaTooltipPosition({ x: offsetX + 20, y: offsetY });
+                        }
+                        if (setting === "Media Rich Search") {
+                          setMediaRichTooltipPosition({ x: offsetX + 20, y: offsetY });
+                        }
                       }}
+                      
                     >
                       <button
                         className="data-type-button"

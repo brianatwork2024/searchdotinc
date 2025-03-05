@@ -1,7 +1,7 @@
 import express from "express";
 import cors from "cors";
 import { SearchServiceClient, ConversationalSearchServiceClient } from "@google-cloud/discoveryengine";
-import credentials from "../keys/vertexaisearch-446219-9b0599a3170b.json" assert { type: "json" };
+import credentials from "../keys/vertexai_searchagent_key.json" assert { type: "json" };
 
 const app = express();
 const port = 3001;
@@ -13,6 +13,7 @@ console.log("🚨🚨🚨 SERVER STARTED - SCHEMA DIAGNOSIS V13.2 - CHECK THIS �
 
 const searchClient = new SearchServiceClient({ credentials });
 const aiClient = new ConversationalSearchServiceClient({ credentials });
+
 
 const projectId = "138159807926";
 const location = "global";

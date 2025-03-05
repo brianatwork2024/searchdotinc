@@ -205,8 +205,7 @@
   padding: 15px;
   border-radius: 8px;
   width: 100%;
-  max-width: 80%;
-  margin-left: 120px;
+  max-width: 100%;
 }
 
 /* ✅ Result Text */
@@ -297,13 +296,18 @@
   color: #fff;
 }
 
+.search-message {
+  max-width: 80%;
+  margin-left: 120px;
+}
+
 /* Search Result Items */
 .search-result-item, .search-message {
   padding: 12px;
   border-radius: 5px;
   margin-bottom: 8px;
   color: white;
-  font-size: clamp(1rem, 2vw, 1.2rem);
+  font-size: 36px;
   transition: background-color 0.2s ease;
 }
 
@@ -368,7 +372,6 @@
   overflow-x: auto;
   gap: 20px;
   padding: 20px 0;
-  width: 1250px;
   max-width: 100%;
   scrollbar-width: thin;
   user-select: none;

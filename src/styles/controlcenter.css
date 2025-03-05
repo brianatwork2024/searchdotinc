@@ -451,27 +451,23 @@
 .tooltip {
     position: absolute;
     background-color: #156082;
-    width: 500px; /* ✅ Increased width */
-    height: auto; /* ✅ Auto adjusts to content */
-    padding: 15px;
+    padding: 10px;
     border-radius: 10px;
     color: white;
     font-size: 14px;
-    font-weight: normal;
     text-align: left;
     line-height: 1.5;
-    position: absolute;
-    top: 110%;
-    left: 50%;
-    transform: translateX(-50%);
-    z-index: 10000;
+    white-space: normal;
+    overflow-wrap: break-word;
+    word-wrap: break-word;
+    max-width: 400px;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.3);
     opacity: 0;
     transition: opacity 0.3s ease-in-out;
-    white-space: normal; /* ✅ Ensures text wraps */
-    overflow-wrap: break-word; /* ✅ Forces text to stay within the tooltip */
-    word-wrap: break-word; /* ✅ Ensures long words don't overflow */
-    max-width: 500px; /* ✅ Ensures it stays within 500px */
-    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.3); /* ✅ Adds slight shadow for better visibility */
+    z-index: 10000;
+    left: auto;  /* ✅ Removes unwanted default alignment */
+    top: auto;   /* ✅ Prevents unintended top displacement */
+    transform: translate(20px, 0); /* ✅ Moves tooltip to the right of cursor */
 }
 
 /* ✅ Show Tooltip on Hover */
@@ -533,11 +529,12 @@
 /* Accuracy Tooltip (No Changes) */
 .accuracy-tooltip {
     background-color: #156082;
+    width: 500px;
     height: auto;
     padding: 15px;
     border-radius: 10px;
     color: white;
-    font-size: 14px;
+    font-size: clamp(0.875rem, 1.25vw, 1.25rem); /* ✅ Scales dynamically, ~20px at 1600px width */
     font-weight: normal;
     text-align: left;
     line-height: 1.5;
@@ -569,7 +566,7 @@
     padding: 15px;
     border-radius: 10px;
     color: white;
-    font-size: 14px;
+    font-size: clamp(0.875rem, 1.25vw, 1.25rem); /* ✅ Scales dynamically, ~20px at 1600px width */
     font-weight: normal;
     text-align: left;
     line-height: 1.5;
@@ -580,8 +577,9 @@
     box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.3);
     opacity: 0;
     transition: opacity 0.3s ease-in-out;
-    left: 50%;
-    transform: translateX(-50%);
+    right: auto;
+    transform: none;  /* ✅ Remove centering effect */
+
     z-index: 10000;
 }
 
@@ -599,7 +597,7 @@
     padding: 15px;
     border-radius: 10px;
     color: white;
-    font-size: 14px;
+    font-size: clamp(0.875rem, 1.25vw, 1.25rem); /* ✅ Scales dynamically, ~20px at 1600px width */
     font-weight: normal;
     text-align: left;
     line-height: 1.5;
@@ -610,9 +608,6 @@
     box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.3);
     opacity: 0;
     transition: opacity 0.3s ease-in-out;
-    top: -100%;
-    left: 50%;
-    transform: translateX(-50%);
     z-index: 10000;
 }
 
@@ -623,13 +618,13 @@
 /* ✅ Social Media Activity Tooltip */
 .social-media-tooltip {
     position: absolute;
-    background-color: #156082;
+    background: #156082;
     width: 500px;
     height: auto;
     padding: 15px;
     border-radius: 10px;
     color: white;
-    font-size: 14px;
+    font-size: clamp(0.875rem, 1.25vw, 1.25rem); /* ✅ Scales dynamically, ~20px at 1600px width */
     font-weight: normal;
     text-align: left;
     line-height: 1.5;
@@ -640,9 +635,6 @@
     box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.3);
     opacity: 0;
     transition: opacity 0.3s ease-in-out;
-    top: -100%; /* Adjusts the position dynamically */
-    left: 50%;
-    transform: translateX(-50%);
     z-index: 10000;
 }
 
@@ -660,7 +652,7 @@
     padding: 15px;
     border-radius: 10px;
     color: white;
-    font-size: 14px;
+    font-size: clamp(0.875rem, 1.25vw, 1.25rem); /* ✅ Scales dynamically, ~20px at 1600px width */
     font-weight: normal;
     text-align: left;
     line-height: 1.5;
