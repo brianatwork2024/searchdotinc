@@ -8,9 +8,10 @@ const app = express();
 const port = 3001;
 
 app.use(cors({
-  origin: ["http://15.223.63.70", "http://localhost:5173"],  // Add both server IP & local dev
-  methods: ["GET", "POST"],
-  allowedHeaders: ["Content-Type"]
+  origin: "http://15.223.63.70:5173",  // Allow frontend
+  methods: "GET, POST, PUT, DELETE, OPTIONS",
+  allowedHeaders: "Content-Type, Authorization",
+  credentials: true
 }));
 app.use(express.json());
 
