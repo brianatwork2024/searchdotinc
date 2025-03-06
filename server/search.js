@@ -1,7 +1,8 @@
 import express from "express";
 import cors from "cors";
 import { SearchServiceClient, ConversationalSearchServiceClient } from "@google-cloud/discoveryengine";
-import credentials from "../keys/vertexai_searchagent_key.json" assert { type: "json" };
+// import credentials from "../keys/vertexai_searchagent_key.json" assert { type: "json" };
+import credentials from "/home/bitnami/searchdotinc/keys/vertexai_searchagent_key.json" assert { type: "json" };
 
 const app = express();
 const port = 3001;

@@ -65,11 +65,11 @@ export default function ControlCenter({ isOpen, onClose, handleLogin }) {
   };
 
   const handleLocationMouseMove = (event) => {
-    setLocationTooltipPosition({ x: event.clientX + 10, y: event.clientY - 200 });
+    setLocationTooltipPosition({ x: event.clientX + 10, y: event.clientY});
   };
 
   const handleSocialMediaMouseMove = (event) => {
-    setSocialMediaTooltipPosition({ x: event.clientX + 10, y: event.clientY - 200 });
+    setSocialMediaTooltipPosition({ x: event.clientX + 10, y: event.clientY});
   };  
 
   const handleMouseMove = (event) => {
@@ -176,7 +176,6 @@ export default function ControlCenter({ isOpen, onClose, handleLogin }) {
                       </div>
                     )}
                   </div>
-
                 </div>
 
                 <div className="accuracy-column">
@@ -205,22 +204,38 @@ export default function ControlCenter({ isOpen, onClose, handleLogin }) {
                       }}
                       onMouseMove={(event) => {
                         const boundingRect = event.currentTarget.getBoundingClientRect();
-                        const offsetX = event.clientX - boundingRect.left;
-                        const offsetY = event.clientY - boundingRect.top;
+                        
+                        // Calculate tooltip position relative to the viewport
+                        const offsetX = event.clientX - boundingRect.left + window.scrollX + 200; // Adjust for left margin
+                        const offsetY = event.clientY - boundingRect.top + window.scrollY + 100;  // Adjust for top margin
+
+                        
                       
-                        if (setting === "Username Data") {
-                          setUsernameTooltipPosition({ x: offsetX, y: offsetY });
-                        }
-                        if (setting === "Location") {
-                          setLocationTooltipPosition({ x: offsetX + 20, y: offsetY });
-                        }
-                        if (setting === "Social Media Activity") {
-                          setSocialMediaTooltipPosition({ x: offsetX + 20, y: offsetY });
-                        }
-                        if (setting === "Media Rich Search") {
-                          setMediaRichTooltipPosition({ x: offsetX + 20, y: offsetY });
+                        const position = { x: offsetX, y: offsetY };
+
+                        
+                      
+                        switch (setting) {
+                          case "Username Data":
+                            setUsernameTooltipPosition(position);
+                            break;
+                          case "Location":
+                            setLocationTooltipPosition(position);
+                            break;
+                          case "Social Media Activity":
+                            position.y += 50; // Move tooltip lower
+                            setSocialMediaTooltipPosition(position);
+                            break;
+                          case "Media Rich Search":
+                            position.y += 220; // Move tooltip lower
+                            setMediaRichTooltipPosition(position);
+                            break;
+                          default:
+                            break;
                         }
                       }}
+                      
+                      
                       
                     >
                       <button
@@ -235,7 +250,7 @@ export default function ControlCenter({ isOpen, onClose, handleLogin }) {
                         <div 
                           className="tooltip username-tooltip"
                           style={{
-                            left: usernameTooltipPosition.x,
+                            right: usernameTooltipPosition.x,
                             top: usernameTooltipPosition.y,
                           }}
                         >
@@ -253,7 +268,7 @@ export default function ControlCenter({ isOpen, onClose, handleLogin }) {
                         <div 
                           className="tooltip location-tooltip"
                           style={{
-                            left: locationTooltipPosition.x,
+                            right: locationTooltipPosition.x,
                             top: locationTooltipPosition.y,
                           }}
                         >
@@ -268,7 +283,7 @@ export default function ControlCenter({ isOpen, onClose, handleLogin }) {
                         <div 
                           className="tooltip social-media-tooltip"
                           style={{
-                            left: socialMediaTooltipPosition.x,
+                            right: socialMediaTooltipPosition.x,
                             top: socialMediaTooltipPosition.y,
                           }}
                         >
@@ -284,7 +299,7 @@ export default function ControlCenter({ isOpen, onClose, handleLogin }) {
                         <div 
                           className="tooltip media-rich-tooltip"
                           style={{
-                            left: mediaRichTooltipPosition.x,
+                            right: mediaRichTooltipPosition.x,
                             top: mediaRichTooltipPosition.y,
                           }}
                         >
@@ -298,10 +313,6 @@ export default function ControlCenter({ isOpen, onClose, handleLogin }) {
                   ))}
                 </div>
               </div>
-
-
-
-
                 <div className="accuracy-column">
                   <h3>YOUR CONTROLS</h3>
                   {Object.keys(selectedControls).map((setting, index) => (

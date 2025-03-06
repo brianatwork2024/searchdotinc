@@ -465,7 +465,7 @@
     opacity: 0;
     transition: opacity 0.3s ease-in-out;
     z-index: 10000;
-    left: auto;  /* ✅ Removes unwanted default alignment */
+    right: 100%;  /* ✅ Removes unwanted default alignment */
     top: auto;   /* ✅ Prevents unintended top displacement */
     transform: translate(20px, 0); /* ✅ Moves tooltip to the right of cursor */
 }
@@ -504,7 +504,7 @@
 
 /* Accuracy Score Updated Styling */
 .accuracy-score {
-    background-color: #156082;
+
     height: auto;
     padding: 15px;
     border-radius: 10px;
@@ -528,7 +528,7 @@
 
 /* Accuracy Tooltip (No Changes) */
 .accuracy-tooltip {
-    background-color: #156082;
+    background-color: rgba(0, 0, 0, 0.8);
     width: 500px;
     height: auto;
     padding: 15px;
@@ -557,16 +557,15 @@
     opacity: 1;
 }
 
-/* Username Data Tooltip */
 .username-tooltip {
     position: absolute;
-    background-color: #156082;
+    background-color: rgba(0, 0, 0, 0.8);
     width: 500px;
     height: auto;
     padding: 15px;
     border-radius: 10px;
     color: white;
-    font-size: clamp(0.875rem, 1.25vw, 1.25rem); /* ✅ Scales dynamically, ~20px at 1600px width */
+    font-size: clamp(0.875rem, 1.25vw, 1.25rem);
     font-weight: normal;
     text-align: left;
     line-height: 1.5;
@@ -576,12 +575,11 @@
     max-width: 500px;
     box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.3);
     opacity: 0;
-    transition: opacity 0.3s ease-in-out;
-    right: auto;
-    transform: none;  /* ✅ Remove centering effect */
-
+    transition: opacity 0.15s ease-in-out;
+    pointer-events: none;  /* Prevents flickering */
     z-index: 10000;
 }
+
 
 /* ✅ Show Username Tooltip on Hover */
 .username-data-container:hover .username-tooltip {
@@ -591,7 +589,7 @@
 /* Location Tooltip */
 .location-tooltip {
     position: absolute;
-    background-color: #156082;
+    background-color: rgba(0, 0, 0, 0.8);
     width: 500px;
     height: auto;
     padding: 15px;
@@ -618,7 +616,7 @@
 /* ✅ Social Media Activity Tooltip */
 .social-media-tooltip {
     position: absolute;
-    background: #156082;
+    background-color: rgba(0, 0, 0, 0.8);
     width: 500px;
     height: auto;
     padding: 15px;
@@ -646,7 +644,7 @@
 /* ✅ Media Rich Search Tooltip */
 .media-rich-tooltip {
     position: absolute;
-    background-color: #156082;
+    background-color: rgba(0, 0, 0, 0.8);
     width: 500px;
     height: auto;
     padding: 15px;
