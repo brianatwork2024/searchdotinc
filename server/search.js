@@ -7,7 +7,11 @@ import credentials from "/home/bitnami/searchdotinc/keys/vertexai_searchagent_ke
 const app = express();
 const port = 3001;
 
-app.use(cors());
+app.use(cors({
+  origin: ["http://15.223.63.70", "http://localhost:5173"],  // Add both server IP & local dev
+  methods: ["GET", "POST"],
+  allowedHeaders: ["Content-Type"]
+}));
 app.use(express.json());
 
 console.log("🚨🚨🚨 SERVER STARTED - SCHEMA DIAGNOSIS V13.2 - CHECK THIS 🚨🚨🚨");
