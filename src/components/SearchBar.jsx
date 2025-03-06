@@ -55,7 +55,7 @@ export default function SearchBar({ onOpenControlCenter, onOpenUserMenu, isContr
     setLoading(true);
 
     try {
-      const response = await fetch(`http://localhost:3001/api/search`, {
+      const response = await fetch(`http://15.223.63.70:3001/api/search`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ query: searchQuery, previousResults }),
