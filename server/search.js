@@ -310,7 +310,9 @@ app.get("/api/brief/:documentId", async (req, res) => {
     res.status(500).json({ error: "Failed to generate summary." });
   }
 });
-
+app.get("/", (req, res) => {
+  res.send("✅ Server is running!");
+});
 // Start the server
 app.listen(port, () => {
   console.log(`✅ Server is running at http://localhost:${port}`);
