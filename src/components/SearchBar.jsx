@@ -50,57 +50,82 @@ export default function SearchBar({ onOpenControlCenter, onOpenUserMenu, isContr
     document.body.removeChild(measurer);
   };
 
-  const handleSearch = async (searchQuery, setResults, setLoading, previousResults = []) => {
+  const handleSearch = async (searchQuery) => {
     if (searchQuery.trim() === "") return;
-    setLoading(true);
-
+  
+    setIsLoading(true);
+    setSearchMessage("");
+    setNotificationBrief(null);
+  
     try {
-      const response = await fetch(`http://15.223.63.70:3001/api/search`, {
+      // const response = await fetch("http://localhost:3001/api/search", {
+      //   method: "POST",
+      //   headers: { "Content-Type": "application/json" },
+      //   body: JSON.stringify({ query: searchQuery }),
+      // });
+
+      const response = await fetch("http://15.223.63.70:3001/api/search", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ query: searchQuery, previousResults }),
+        body: JSON.stringify({ query: searchQuery }),
       });
-
+  
       const data = await response.json();
-      if (response.ok && data.documents.length > 0) {
-        setResults([...previousResults, ...data.documents]);
+      console.log("📩 API Response:", data);
+  
+      if (response.ok) {
+        setAdditionalResults(data.documents);
         setSearchMessage(`${data.documents.length} results found for "${searchQuery}"`);
+        
+        if (data.aiSummary && data.aiSummary !== "No AI summary available.") {
+          setNotificationBrief(data.aiSummary);
+        }
       } else {
-        setResults([]);
-        setSearchMessage(`No results matching "${searchQuery}". Try rephrasing your search.`);
+        setSearchMessage(`No results matching "${searchQuery}". Please try rephrasing.`);
       }
     } catch (error) {
+      console.error("❌ Error fetching search results:", error);
       setSearchMessage("Error retrieving search results.");
     } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
   };
+  
 
   const handleFollowUpSearch = async (searchQuery) => {
     if (searchQuery.trim() === "") return;
+  
     setIsFollowUpLoading(true);
     setNotificationBrief(null);
-
+  
+    console.log("🔍 Follow-Up Query:", searchQuery);
+    console.log("📜 Sending Previous Results:", additionalResults);
+  
     try {
-      const response = await fetch(`http://15.223.63.70:3001/api/notification-brief`, {
+      const response = await fetch("http://15.223.63.70:3001/api/notification-brief", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ query: searchQuery, previousResults: additionalResults }),
       });
-
+  
       const data = await response.json();
+  
+      console.log("📩 API Response:", data);
+  
       if (response.ok && data.notificationBrief) {
         setNotificationBrief(data.notificationBrief);
         setIsBriefVisible(true);
       } else {
-        setNotificationBrief("No relevant results found. Try refining your follow-up question.");
+        setNotificationBrief("No relevant results found. Try rephrasing your question.");
       }
     } catch (error) {
-      setNotificationBrief("Error retrieving follow-up results.");
+      console.error("❌ Error fetching follow-up search results:", error);
+      setNotificationBrief("Error retrieving follow-up results. Please try again.");
     } finally {
       setIsFollowUpLoading(false);
     }
   };
+  
 
   // Dragging functionality for circles
   const handleMouseDown = (e) => {
@@ -160,6 +185,12 @@ export default function SearchBar({ onOpenControlCenter, onOpenUserMenu, isContr
                 onChange={handleInputChange}
                 className="search-input"
                 rows="1"
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && !e.shiftKey) {
+                    e.preventDefault(); // Prevent new line
+                    handleSearch(query, setAdditionalResults, setIsLoading);
+                  }
+                }}
               />
               <img src={searchIcon} alt="Search" className="search-button" onClick={() => handleSearch(query, setAdditionalResults, setIsLoading)} />
             </form>
@@ -208,6 +239,7 @@ export default function SearchBar({ onOpenControlCenter, onOpenUserMenu, isContr
                 )}
               </div>
             )}
+            
 
             {/* ✅ Follow-Up Search - Outside of Additional Results Div */}
             {additionalResults.length > 0 && (
@@ -230,7 +262,7 @@ export default function SearchBar({ onOpenControlCenter, onOpenUserMenu, isContr
                     src={searchIcon}
                     alt="Search"
                     className="search-button"
-                    onClick={() => handleSearch(followUpQuery, setFollowUpResults, setIsFollowUpLoading, additionalResults)}
+                    onClick={() => handleFollowUpSearch(followUpQuery, setFollowUpResults, setIsFollowUpLoading, additionalResults)}
                   />
                 </form>
 
