@@ -121,6 +121,32 @@ export default function SearchBar({ onOpenControlCenter, onOpenUserMenu, isContr
     isDragging.current = false;
   };
 
+  const formatNotificationBrief = (briefText) => {
+    if (!briefText || typeof briefText !== "string") return null;
+  
+    // Use regex to correctly extract sections that start with "**"
+    const sections = briefText.split(/\*\*(.*?)\*\*/g).filter(section => section.trim() !== "");
+  
+    let formattedSections = [];
+  
+    for (let i = 0; i < sections.length; i += 2) {
+      let heading = sections[i]?.trim();
+      let content = sections[i + 1]?.trim() || "No content available."; // Default if no content
+  
+      if (heading && content) {
+        formattedSections.push(
+          <div key={i} className="notification-section">
+            <h2>{heading}</h2>
+            <p>{content}</p>
+          </div>
+        );
+      }
+    }
+  
+    return formattedSections;
+  };
+  
+
   return (
     <div className="searchbar-container">
       <div className="cc-icon" onClick={onOpenControlCenter}></div>
@@ -195,7 +221,7 @@ export default function SearchBar({ onOpenControlCenter, onOpenUserMenu, isContr
                     onKeyDown={(e) => {
                       if (e.key === "Enter" && !e.shiftKey) {
                         e.preventDefault(); // Prevent new line
-                        handleSearch(followUpQuery, setFollowUpResults, setIsFollowUpLoading, additionalResults);
+                        handleFollowUpSearch(followUpQuery, setFollowUpResults, setIsFollowUpLoading, additionalResults);
                       }
                     }}
                     className="search-input"
@@ -232,9 +258,23 @@ export default function SearchBar({ onOpenControlCenter, onOpenUserMenu, isContr
                 <button onClick={() => setIsBriefVisible(!isBriefVisible)}>
                   {isBriefVisible ? "Hide Brief" : "Show Brief"}
                 </button>
-                {isBriefVisible && <div className="notification-brief"><p>{notificationBrief}</p></div>}
+
+                {isBriefVisible && (
+                  <div className="notification-brief">
+                    {isFollowUpLoading ? (
+                      <div className="preloader-container">
+                        <div className="spinner"></div>
+                      </div>
+                    ) : (
+                      <div className="notification-content">
+                        {formatNotificationBrief(notificationBrief)}
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
             )}
+
           </>
         )}
       </div>

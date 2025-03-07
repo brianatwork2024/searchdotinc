@@ -9,10 +9,17 @@ const port = 3001;
 
 app.use(cors({
   origin: "http://15.223.63.70:5173",  // Allow frontend
+  // origin: "http://localhost:5173",  // Allow frontend
   methods: "GET, POST, PUT, DELETE, OPTIONS",
   allowedHeaders: "Content-Type, Authorization",
   credentials: true
 }));
+
+// app.use(cors({
+//   origin: "http://localhost:5173",  // ✅ Allow frontend requests from local Vite server
+//   methods: "GET,POST",
+//   allowedHeaders: "Content-Type"
+// }));
 app.use(express.json());
 
 console.log("🚨🚨🚨 SERVER STARTED - SCHEMA DIAGNOSIS V13.2 - CHECK THIS 🚨🚨🚨");

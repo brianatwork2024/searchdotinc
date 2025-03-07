@@ -325,6 +325,9 @@
 .notification-section {
   margin-bottom: 25px;
 }
+.notification-section p {
+  font-size: clamp(1rem, 2vw, 1.5rem);
+}
 .notification-brief {
   margin-top: 10px;
   background: rgba(255, 255, 255, 0.2);
