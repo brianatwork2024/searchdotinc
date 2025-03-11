@@ -3,6 +3,7 @@ import cors from "cors";
 import { SearchServiceClient, ConversationalSearchServiceClient } from "@google-cloud/discoveryengine";
 // import credentials from "../keys/vertexai_searchagent_key.json" assert { type: "json" };
 import credentials from "/home/bitnami/searchdotinc/keys/vertexai_searchagent_key.json" assert { type: "json" };
+import { format } from "date-fns"; // ✅ Ensure you have date-fns installed
 
 const app = express();
 const port = 3001;
@@ -98,18 +99,39 @@ app.post("/api/search", async (req, res) => {
             console.warn("⚠️ Skipping document with missing data:", result);
             return null;
           }
-          const doc = result.document;
-          const fields = doc.derivedStructData.fields || {};
-          console.log("🔍 Document Fields for", doc.id, ":", JSON.stringify(fields, null, 2)); // ✅ Log fields
-          let filePath = fields?.link?.stringValue || "";
-          let title = fields?.title?.stringValue || "No Title Available";
-          let dateModified =
-            fields?.dateModified?.stringValue ||
-            doc?.indexTime ||
-            doc?.indexStatus?.updateTime ||
-            "No Date Available";
-          let relevanceScore = result?.relevanceScore || 0;
 
+          
+
+          const doc = result.document || {};
+          const metadata = doc.documentMetadata || {};
+          const fields = metadata?.structData?.fields || doc?.structData?.fields || {};
+
+          const rawTitle =
+            fields?.title?.stringValue?.trim() ||
+            metadata?.title?.trim() ||
+            doc?.title?.trim() ||  
+            "No Title Available";
+
+          const rawDate = fields?.publish_date?.stringValue || "No Date Available";
+
+          // ✅ Convert Date to "Month Day, Year" format
+          let formattedDate = "No Date Available";
+          if (rawDate && rawDate !== "No Date Available") {
+            try {
+              formattedDate = format(new Date(rawDate), "MMMM d, yyyy"); // Example: "November 28, 2024"
+            } catch (error) {
+              console.warn(`⚠️ Date parsing failed for: ${rawDate}`, error);
+            }
+          }
+
+          // ✅ Combine Title + Date
+          const displayTitle = `${rawTitle} - ${formattedDate}`;
+
+          let filePath = metadata?.uri || doc?.uri || "No Link Available";
+          const ministry = fields?.ministry?.stringValue || "No Ministry Available";
+          const pageIdentifier = metadata?.pageIdentifier || doc?.pageIdentifier || "Unknown Page";
+
+          // Convert `gs://` URLs to accessible links
           if (filePath.startsWith("gs://")) {
             const gsParts = filePath.replace("gs://", "").split("/");
             const bucketName = gsParts.shift();
@@ -117,14 +139,20 @@ app.post("/api/search", async (req, res) => {
             filePath = `https://storage.googleapis.com/${bucketName}/${fileName}`;
           }
 
+          // ✅ Debugging log
+          console.log(`🔍 Final Display Title: "${displayTitle}"`);
+
           return {
             id: doc.id || "Unknown ID",
-            title,
-            link: filePath || "No Link Available",
-            dateModified,
-            relevanceScore,
+            title: displayTitle,  // ✅ Updated to formatted title
+            link: filePath,
+            ministry,
+            pageIdentifier,
+            relevanceScore: result?.relevanceScore || 0,
             hasSummary: false,
           };
+
+
         })
         .filter(doc => doc !== null);
 
