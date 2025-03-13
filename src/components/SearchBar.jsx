@@ -1,7 +1,8 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";  // ✅ Import useEffect
 import "../styles/searchbar.css";
 import searchIcon from "/images/icon-search.svg" with { type: "svg" };
 import bubblesIcon from "/images/icon-bubbles.svg" with { type: "svg" };
+import bubblesIconHover from "/images/icon-bubbles-hover.svg";
 import listIcon from "/images/icon-list.svg" with { type: "svg" };
 import leafIcon from "/images/icon-leaf.svg" with { type: "svg" };
 
@@ -17,12 +18,32 @@ export default function SearchBar({ onOpenControlCenter, onOpenUserMenu, isContr
   const [searchMessage, setSearchMessage] = useState("");
   const [activeTab, setActiveTab] = useState("list");
   const [inputWidth, setInputWidth] = useState(650);
+  const [showCCIcon, setShowCCIcon] = useState(false);
+  const [showMenuIcon, setShowMenuIcon] = useState(false);
+  const [isHovered, setIsHovered] = useState(false);
   
   const circleContainerRef = useRef(null);
   const isDragging = useRef(false);
   const startX = useRef(0);
   const scrollLeft = useRef(0);
   const followUpInputRef = useRef(null);
+
+  const inputRef = useRef(null); // ✅ Create a reference for the input field
+
+  useEffect(() => {
+    setTimeout(() => {
+      setShowCCIcon(true);  // ✅ Trigger CC icon animation
+    }, 100);
+
+    setTimeout(() => {
+      setShowMenuIcon(true);  // ✅ Trigger menu icon animation
+    }, 200);  // Slight delay for a staggered effect
+
+    // ✅ Auto-focus the search input when the page loads
+    if (inputRef.current) {
+      inputRef.current.focus();
+    }
+  }, []);
 
 
   const handleInputChange = (event) => {
@@ -50,6 +71,48 @@ export default function SearchBar({ onOpenControlCenter, onOpenUserMenu, isContr
     document.body.removeChild(measurer);
   };
 
+  const generateSearchMessageWithGemini = async (count, query) => {
+    try {
+      const response = await fetch(
+        "https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateText?key=YOUR_GEMINI_API_KEY",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            contents: [
+              {
+                role: "user",
+                parts: [
+                  {
+                    text: `Generate a search result message for the following:
+                      - Search Query: "${query}"
+                      - Number of Results: ${count}
+                      - The message should be user-friendly, engaging, and informative.`,
+                  },
+                ],
+              },
+            ],
+          }),
+        }
+      );
+  
+      const data = await response.json();
+      
+      // ✅ Extract AI-generated text
+      const aiMessage =
+        data.candidates?.[0]?.content?.parts?.[0]?.text ||
+        `${count} results found for "${query}".`;
+  
+      return aiMessage;
+    } catch (error) {
+      console.error("❌ Error fetching AI-generated message:", error);
+      return `${count} results found for "${query}".`; // ✅ Fallback message
+    }
+  };
+  
+
   const handleSearch = async (searchQuery) => {
     if (searchQuery.trim() === "") return;
   
@@ -75,8 +138,11 @@ export default function SearchBar({ onOpenControlCenter, onOpenUserMenu, isContr
   
       if (response.ok) {
         setAdditionalResults(data.documents);
-        setSearchMessage(`${data.documents.length} results found for "${searchQuery}"`);
-        
+  
+        // ✅ Await the AI-generated message before setting it
+        const aiMessage = await generateSearchMessageWithGemini(data.documents.length, searchQuery);
+        setSearchMessage(aiMessage);
+  
         if (data.aiSummary && data.aiSummary !== "No AI summary available.") {
           setNotificationBrief(data.aiSummary);
         }
@@ -90,6 +156,7 @@ export default function SearchBar({ onOpenControlCenter, onOpenUserMenu, isContr
       setIsLoading(false);
     }
   };
+  
   
 
   const handleFollowUpSearch = async (searchQuery) => {
@@ -180,12 +247,13 @@ export default function SearchBar({ onOpenControlCenter, onOpenUserMenu, isContr
 
   return (
     <div className="searchbar-container">
-      <div className="cc-icon" onClick={onOpenControlCenter}></div>
+      <div className={`cc-icon ${showCCIcon ? "visible" : ""}`} onClick={onOpenControlCenter}></div>
       <div className="searchbar-wrapper">
         {!isControlCenterOpen && (
           <>
             <form className="search-bar" style={{ width: `${inputWidth}px`, maxWidth: "80%" }}>
               <textarea
+                ref={inputRef}
                 placeholder="Welcome. Search and you will find"
                 value={query}
                 onChange={handleInputChange}
@@ -208,12 +276,34 @@ export default function SearchBar({ onOpenControlCenter, onOpenUserMenu, isContr
             {additionalResults.length > 0 && (
               <div className="additional-results">
                 <div className="results-tabs">
-                  <button className={`tab-button ${activeTab === "list" ? "active" : ""}`} onClick={() => setActiveTab("list")}>
-                    <img src={listIcon} alt="List" className="tab-icon" />
+                  {/* Bubbles Tab */}
+                  <button
+                    className={`tab-button ${activeTab === "circles" ? "active" : ""}`}
+                    onClick={() => setActiveTab("circles")}
+                    onMouseEnter={() => setIsHovered(true)}
+                    onMouseLeave={() => setIsHovered(false)}
+                  >
+                    <div className="tab-icon-wrapper bubbles">
+                      <div className={`tab-icon bubbles-off ${isHovered || activeTab === "circles" ? "hidden" : ""}`}></div>
+                      <div className={`tab-icon bubbles-hover ${isHovered || activeTab === "circles" ? "visible" : ""}`}></div>
+                    </div>
                   </button>
-                  <button className={`tab-button ${activeTab === "circles" ? "active" : ""}`} onClick={() => setActiveTab("circles")}>
-                    <img src={bubblesIcon} alt="Circles" className="tab-icon" />
+
+                  {/* List Tab */}
+                  <button
+                    className={`tab-button ${activeTab === "list" ? "active" : ""}`}
+                    onClick={() => setActiveTab("list")}
+                    onMouseEnter={() => setIsHovered(true)}
+                    onMouseLeave={() => setIsHovered(false)}
+                  >
+                    <div className="tab-icon-wrapper list">
+                      <div className={`tab-icon list-off ${isHovered || activeTab === "list" ? "hidden" : ""}`}></div>
+                      <div className={`tab-icon list-hover ${isHovered || activeTab === "list" ? "visible" : ""}`}></div>
+                    </div>
                   </button>
+
+
+
                 </div>
 
                 {activeTab === "list" && (
@@ -316,7 +406,7 @@ export default function SearchBar({ onOpenControlCenter, onOpenUserMenu, isContr
           </>
         )}
       </div>
-      <div className="menu-icon" onClick={onOpenUserMenu}></div>
+      <div className={`menu-icon ${showMenuIcon ? "visible" : ""}`} onClick={onOpenUserMenu}></div>
     </div>
   );
 }

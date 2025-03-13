@@ -92,6 +92,17 @@
   visibility: hidden;
 }
 
+@keyframes slideInFromLeft {
+  0% {
+    transform: translateX(-100%);
+    opacity: 0;
+  }
+  100% {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
 /* CC Icon Wrapper */
 .cc-icon {
   width: 60px;
@@ -102,7 +113,17 @@
   overflow: visible;
   top: 0;
   left: 10px;
+  opacity: 0; /* Start hidden */
+  transform: translateX(-100%); /* Start off-screen */
+  transition: transform 0.5s ease-out, opacity 0.5s ease-out;
 }
+
+/* Apply animation when the class is added */
+.cc-icon.visible {
+  transform: translateX(0);
+  opacity: 1;
+}
+
 
 /* Default Off State */
 .cc-icon::before {
@@ -144,7 +165,18 @@
   opacity: 1;
 }
 
-/* Menu Icon (Fixed Position to Right) */
+@keyframes slideInFromRight {
+  0% {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  100% {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+/* Default state (hidden & off-screen) */
 .menu-icon {
   width: 60px;
   height: 90px;
@@ -156,6 +188,15 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  opacity: 0;
+  transform: translateX(100%);
+  transition: transform 0.5s ease-out, opacity 0.5s ease-out;
+}
+
+/* Visible state (animated slide-in) */
+.menu-icon.visible {
+  transform: translateX(0);
+  opacity: 1;
 }
 
 /* Default Off State */
@@ -252,7 +293,7 @@
 /* Additional Results */
 .additional-results {
   margin-top: 20px;
-  background: rgba(255, 255, 255, 0.07);
+  
   padding: 15px;
   border-radius: 8px;
   width: 100%;
@@ -274,7 +315,7 @@
   position: absolute;
 }
 
-/* Tab Buttons */
+/* Tab Button */
 .tab-button {
   background: rgba(255, 255, 255, 0.2);
   color: white;
@@ -283,18 +324,213 @@
   font-size: clamp(0.875rem, 1.5vw, 1rem);
   border-radius: 5px;
   cursor: pointer;
-  transition: background 0.3s;
+  transition: background 0.3s ease-in-out, color 0.3s ease-in-out;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-.tab-button.active {
-  background: #99d9d7;
-  color: #1A2485;
+/* ========== ICON-BUBBLES ========== */
+/* Fixed Container for Bubbles */
+.tab-icon-wrapper.bubbles {
+  width: 78px; /* Match the hover state */
+  height: 39px;
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  overflow: hidden;
 }
 
-.tab-button:hover {
-  background: #1A2485;
-  color: #fff;
+/* Off-State Bubbles */
+.tab-icon.bubbles-off {
+  width: 53px;
+  height: 22px;
+  background-image: url("/images/icon-bubbles.svg");
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center bottom;
+  position: absolute;
+  transition: opacity 0.3s ease-in-out;
 }
+
+/* Hover-State Bubbles */
+.tab-icon.bubbles-hover {
+  width: 78px;
+  height: 39px;
+  background-image: url("/images/icon-bubbles-hover.svg");
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center bottom;
+  position: absolute;
+  opacity: 0;
+  transition: opacity 0.3s ease-in-out;
+}
+
+/* Show bubbles-hover, hide bubbles-off */
+.tab-button:hover .bubbles-hover,
+.tab-button.active .bubbles-hover {
+  opacity: 1;
+}
+
+.tab-button:hover .bubbles-off,
+.tab-button.active .bubbles-off {
+  opacity: 0;
+}
+
+/* ========== ICON-LIST ========== */
+/* Fixed Container for List */
+.tab-icon-wrapper.list {
+  width: 66px; /* Match hover state */
+  height: 40px;
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  overflow: hidden;
+}
+
+/* Off-State List */
+.tab-icon.list-off {
+  width: 24px;
+  height: 23px;
+  background-image: url("/images/icon-list.svg");
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center bottom;
+  position: absolute;
+  transition: opacity 0.3s ease-in-out;
+}
+
+/* Hover-State List */
+.tab-icon.list-hover {
+  width: 66px;
+  height: 40px;
+  background-image: url("/images/icon-list-hover.svg");
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center bottom;
+  position: absolute;
+  opacity: 0;
+  transition: opacity 0.3s ease-in-out;
+}
+
+/* Show list-hover, hide list-off */
+.tab-button:hover .list-hover,
+.tab-button.active .list-hover {
+  opacity: 1;
+}
+
+.tab-button:hover .list-off,
+.tab-button.active .list-off {
+  opacity: 0;
+}
+
+
+/* Ensure both icons are placed inside the same fixed-size wrapper */
+.icon-wrapper {
+  width: 78px;  /* ✅ Match the larger hover icon */
+  height: 50px; /* ✅ Adjust to the max height */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+/* Tab Button */
+.tab-button {
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  font-size: clamp(0.875rem, 1.5vw, 1rem);
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background 0.3s ease-in-out, color 0.3s ease-in-out;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Tab Button */
+.tab-button {
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  font-size: clamp(0.875rem, 1.5vw, 1rem);
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background 0.3s ease-in-out, color 0.3s ease-in-out;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Tab Button */
+.tab-button {
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  font-size: clamp(0.875rem, 1.5vw, 1rem);
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background 0.3s ease-in-out, color 0.3s ease-in-out;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Tab Icon Wrapper - Fixed Size to Prevent Layout Shifting */
+.tab-icon-wrapper {
+  width: 78px; /* Match the largest icon width */
+  height: 39px; /* Match the largest icon height */
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: flex-end; /* Align the off-state image to the bottom */
+  overflow: hidden; /* Prevents shifting */
+}
+
+/* Off-State Icon */
+.tab-icon.off-state {
+  width: 53px; /* Actual off-state width */
+  height: 22px; /* Actual off-state height */
+  background-image: url("/images/icon-bubbles.svg");
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center bottom; /* Keeps it at the bottom */
+  position: absolute;
+  transition: opacity 0.3s ease-in-out;
+}
+
+/* Hover-State Icon */
+.tab-icon.hover-state {
+  width: 78px; /* Actual hover-state width */
+  height: 39px; /* Actual hover-state height */
+  background-image: url("/images/icon-bubbles-hover.svg");
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center bottom;
+  position: absolute;
+  opacity: 0;
+  transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
+}
+
+/* Show the hover state, hide the off state */
+.tab-button:hover .hover-state,
+.tab-button.active .hover-state {
+  opacity: 1;
+  
+}
+
+.tab-button:hover .off-state,
+.tab-button.active .off-state {
+  opacity: 0;
+}
+
+
 
 .search-message {
   max-width: 80%;
@@ -368,18 +604,39 @@
   line-height: 1.5;
 }
 
-/* ✅ Circle Container for Toggle */
 .circle-container {
   display: flex;
+  background: rgba(255, 255, 255, 0.07);
   flex-wrap: nowrap;
   overflow-x: auto;
   gap: 20px;
   padding: 20px 0;
-  max-width: 100%;
+  width: 100%; /* ✅ Match parent container */
+  max-width: 89vw; /* ✅ Keep it within viewport */
+  margin-top: 10px;
   scrollbar-width: thin;
   user-select: none;
   cursor: grab;
+  white-space: nowrap; /* ✅ Prevents content from wrapping and stretching the height */
 }
+
+/* Prevent child elements from stretching the container */
+.circle {
+  width: 400px; /* ✅ Fixed width */
+  height: 400px;
+  background: rgba(46, 58, 68, 0.8);
+  border: 2px solid #fff;
+  border-radius: 50%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+  flex-shrink: 0; /* ✅ Prevents circles from expanding the container */
+  text-align: center;
+  white-space: normal;
+}
+
 
 /* ✅ Active Drag State */
 .circle-container:active {

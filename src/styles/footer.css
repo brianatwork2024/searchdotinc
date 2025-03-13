@@ -1,0 +1,72 @@
+/* Footer Container */
+.footer {
+    width: 100%;
+    display: flex;
+    justify-content: flex-end; /* ✅ Align content to the right */
+    align-items: center;
+    padding: 15px 20px;
+    font-size: clamp(0.875rem, 1vw, 1rem); /* ✅ 16px at 1600px width */
+    color: white;
+    position: fixed;  /* ✅ Keeps the footer at the bottom */
+    bottom: 0;
+    left: 0;
+    z-index: 100;
+    pointer-events: none;  /* ✅ Makes the footer itself non-interactive */
+  }
+  
+  /* Footer Links */
+  .footer-links {
+    display: flex;
+    gap: 20px;
+    margin-right: 40px; /* ✅ Adds space before the icons */
+    pointer-events: auto; /* ✅ Allows interaction */
+  }
+  
+  /* Footer Links */
+  .footer-link {
+    color: white;
+    text-decoration: none;
+    transition: color 0.3s ease-in-out;
+  }
+  
+  .footer-link:hover {
+    color: #99d9d7; /* ✅ Hover effect restored */
+  }
+  
+  /* Footer Icons */
+  .footer-icons {
+    display: flex;
+    gap: 15px;
+    pointer-events: auto; /* ✅ Allows clicking on icons */
+  }
+  
+  /* Social Media Icons */
+  .footer-icon {
+    width: 18px;
+    height: 18px;
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    transition: background-image 0.3s ease-in-out, opacity 0.3s ease-in-out;
+    display: inline-block;
+    pointer-events: auto; /* ✅ Allows clicking */
+  }
+  
+  /* LinkedIn Icon */
+  .footer-icon.linkedin {
+    background-image: url("/images/icon-linkedin.svg");
+  }
+  
+  .footer-icon.linkedin:hover {
+    background-image: url("/images/icon-linkedin-hover.svg");
+  }
+  
+  /* X (Twitter) Icon */
+  .footer-icon.x-icon {
+    background-image: url("/images/icon-x.svg");
+  }
+  
+  .footer-icon.x-icon:hover {
+    background-image: url("/images/icon-x-hover.svg");
+  }
+  
