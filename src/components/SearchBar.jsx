@@ -145,7 +145,7 @@ export default function SearchBar({ onOpenControlCenter, onOpenUserMenu, isContr
       });
   
       const data = await response.json();
-      console.log("📩 API Response:", data);
+      console.log("📩 API Response v1:", data);
   
       if (response.ok) {
         setAdditionalResults(data.documents);
@@ -155,7 +155,7 @@ export default function SearchBar({ onOpenControlCenter, onOpenUserMenu, isContr
         setSearchMessage(aiMessage);
   
         if (data.aiSummary && data.aiSummary !== "No AI summary available.") {
-          setNotificationBrief(data.aiSummary);
+          // setNotificationBrief(data.aiSummary);
         }
       } else {
         setSearchMessage(`No results matching "${searchQuery}". Please try rephrasing.`);

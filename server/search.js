@@ -1,8 +1,8 @@
 import express from "express";
 import cors from "cors";
 import { SearchServiceClient, ConversationalSearchServiceClient } from "@google-cloud/discoveryengine";
-import credentials from "../keys/vertexai_searchagent_key.json" assert { type: "json" };
-// import credentials from "/home/bitnami/searchdotinc/keys/vertexai_searchagent_key.json" assert { type: "json" };
+// import credentials from "../keys/vertexai_searchagent_key.json" assert { type: "json" };
+import credentials from "/home/bitnami/searchdotinc/keys/vertexai_searchagent_key.json" assert { type: "json" };
 import { format } from "date-fns"; // ✅ Ensure you have date-fns installed
 
 const app = express();
