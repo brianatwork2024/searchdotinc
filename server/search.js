@@ -1,19 +1,41 @@
 import express from "express";
 import cors from "cors";
 import { SearchServiceClient, ConversationalSearchServiceClient } from "@google-cloud/discoveryengine";
-// import credentials from "../keys/vertexai_searchagent_key.json" assert { type: "json" };
-import credentials from "/home/bitnami/searchdotinc/keys/vertexai_searchagent_key.json" assert { type: "json" };
+import credentials from "../keys/vertexai_searchagent_key.json" assert { type: "json" };
+// import credentials from "/home/bitnami/searchdotinc/keys/vertexai_searchagent_key.json" assert { type: "json" };
 import { format } from "date-fns"; // ✅ Ensure you have date-fns installed
 
 const app = express();
 const port = 3001;
 
-app.use(cors({
-  origin: "http://15.223.63.70:5173",  // Allow frontend
-  methods: "GET, POST, PUT, DELETE, OPTIONS",
-  allowedHeaders: "Content-Type, Authorization",
-  credentials: true
-}));
+// const cors = require("cors");
+
+// Dynamically set allowed origins based on request origin
+const allowedOrigins = {
+  "localhost": "http://localhost:5173",
+  "15.223.63.70": "http://15.223.63.70:5173"
+};
+
+// Middleware to determine the correct CORS origin
+app.use((req, res, next) => {
+  const hostname = req.hostname; // Get the request hostname
+  const origin = allowedOrigins[hostname] || allowedOrigins["15.223.63.70"]; // Default to AWS
+
+  cors({
+    origin: origin,
+    methods: "GET,POST,PUT,DELETE,OPTIONS",
+    allowedHeaders: "Content-Type, Authorization",
+    credentials: true
+  })(req, res, next);
+});
+
+
+// app.use(cors({
+//   origin: "http://15.223.63.70:5173",  // Allow frontend
+//   methods: "GET, POST, PUT, DELETE, OPTIONS",
+//   allowedHeaders: "Content-Type, Authorization",
+//   credentials: true
+// }));
 
 // app.use(cors({
 //   origin: "http://localhost:5173",  // ✅ Allow frontend requests from local Vite server
@@ -105,6 +127,7 @@ app.post("/api/search", async (req, res) => {
           const doc = result.document || {};
           const metadata = doc.documentMetadata || {};
           const fields = metadata?.structData?.fields || doc?.structData?.fields || {};
+          const derivedFields = doc?.derivedStructData?.fields ?? {}; 
 
           const rawTitle =
             fields?.title?.stringValue?.trim() ||
@@ -126,11 +149,15 @@ app.post("/api/search", async (req, res) => {
 
           // ✅ Combine Title + Date
           const displayTitle = `${rawTitle} - ${formattedDate}`;
+          
+          // ✅ Extract `uri` properly
+          let filePath = derivedFields?.link?.stringValue || "No Link Available";
 
-          let filePath = metadata?.uri || doc?.uri || "No Link Available";
-          const ministry = fields?.ministry?.stringValue || "No Ministry Available";
-          const pageIdentifier = metadata?.pageIdentifier || doc?.pageIdentifier || "Unknown Page";
-
+          // ✅ Debug logs before processing
+          console.log("📜 Full Document Object:", JSON.stringify(doc, null, 2));
+          console.log("🔍 Checking derivedStructData:", JSON.stringify(doc.derivedStructData, null, 2));
+          console.log("📂 Extracted filePath (before conversion):", filePath);
+          
           // Convert `gs://` URLs to accessible links
           if (filePath.startsWith("gs://")) {
             const gsParts = filePath.replace("gs://", "").split("/");
@@ -138,16 +165,16 @@ app.post("/api/search", async (req, res) => {
             const fileName = gsParts.join("/");
             filePath = `https://storage.googleapis.com/${bucketName}/${fileName}`;
           }
-
-          // ✅ Debugging log
+          
+          // ✅ Debug log after conversion
+          console.log("🔗 Final filePath (uri) after conversion:", filePath);
           console.log(`🔍 Final Display Title: "${displayTitle}"`);
-
+          
           return {
-            id: doc.id || "Unknown ID",
-            title: displayTitle,  // ✅ Updated to formatted title
-            link: filePath,
-            ministry,
-            pageIdentifier,
+            id: doc?.id || "Unknown ID",
+            title: displayTitle,
+            link: filePath.trim() !== "" ? filePath : "No Link Available", // ✅ Ensures a valid link
+            ministry: doc?.structData?.fields?.ministry?.stringValue || "No Ministry Available",
             relevanceScore: result?.relevanceScore || 0,
             hasSummary: false,
           };

@@ -30,6 +30,11 @@ export default function SearchBar({ onOpenControlCenter, onOpenUserMenu, isContr
 
   const inputRef = useRef(null); // ✅ Create a reference for the input field
 
+  const isLocal = window.location.hostname === "localhost"; // Determines if running locally
+  const apiUrl = isLocal
+  ? "http://localhost:3001/api/search"
+  : "http://15.223.63.70:3001/api/search";
+
   useEffect(() => {
     setTimeout(() => {
       setShowCCIcon(true);  // ✅ Trigger CC icon animation
@@ -127,7 +132,13 @@ export default function SearchBar({ onOpenControlCenter, onOpenUserMenu, isContr
       //   body: JSON.stringify({ query: searchQuery }),
       // });
 
-      const response = await fetch("http://15.223.63.70:3001/api/search", {
+      // const response = await fetch("http://15.223.63.70:3001/api/search", {
+      //   method: "POST",
+      //   headers: { "Content-Type": "application/json" },
+      //   body: JSON.stringify({ query: searchQuery }),
+      // });
+
+      const response = await fetch(apiUrl, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ query: searchQuery }),
@@ -184,6 +195,7 @@ export default function SearchBar({ onOpenControlCenter, onOpenUserMenu, isContr
       const data = await response.json();
   
       console.log("📩 API Response:", data);
+      
   
       if (response.ok && data.notificationBrief) {
         setNotificationBrief(data.notificationBrief);
@@ -310,11 +322,24 @@ export default function SearchBar({ onOpenControlCenter, onOpenUserMenu, isContr
                   <div className="search-results">
                     {additionalResults.map((doc) => (
                       <div key={doc.id} className="search-result-item">
-                        <p>{doc.title}</p>
+                        <p>
+                          <a
+                            href={doc.link}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="search-title-link"
+                          >
+                            {doc.title}
+                          </a>
+                          <span className="search-tag">CANADA.CA</span>
+                        </p>
                       </div>
                     ))}
                   </div>
                 )}
+
+
+
 
                 {activeTab === "circles" && (
                   <div
@@ -329,6 +354,7 @@ export default function SearchBar({ onOpenControlCenter, onOpenUserMenu, isContr
                       <div key={doc.id} className="circle">
                         <img src={leafIcon} alt="Leaf" className="circle-icon" />
                         <span className="circle-text">{doc.title}</span>
+                        <span className="search-tag">CANADA.CA</span>
                       </div>
                     ))}
                   </div>

@@ -17,6 +17,7 @@
   align-items: flex-start;
   width: 100%; /* ✅ Match searchbar-container width */
   max-width: 80%; /* ✅ Cap at 80% of viewport */
+  min-width: 650px;
   border: none;
   border-radius: 25px;
   transition: width 0.2s ease-in-out, height 0.2s ease-in-out;
@@ -294,7 +295,7 @@
 .additional-results {
   margin-top: 20px;
   
-  padding: 15px;
+  padding-top: 12px;
   border-radius: 8px;
   width: 100%;
   max-width: 80%;
@@ -535,6 +536,7 @@
 .search-message {
   max-width: 80%;
   margin-left: 120px;
+  background: rgba(255, 255, 255, 0.2);
 }
 
 /* Search Result Items */
@@ -556,6 +558,28 @@
   background-color: transparent;
   cursor: default;
 }
+
+.search-result-item p {
+  display: inline; /* Enables proper spacing and wrapping */
+}
+
+.search-result-item a {
+  color: #fff;
+  text-decoration: none;
+}
+
+.search-tag {
+  background-color: #2D2D2D;
+  color: white;
+  font-size: 10px;
+  padding: 4px 8px;
+  border-radius: 4px;
+  white-space: nowrap; /* Keeps the tag from breaking */
+  flex-shrink: 0; /* Prevents the tag from shrinking */
+  vertical-align: middle;
+}
+
+
 
 /* ✅ Notification Brief Container */
 .notification-section {
@@ -637,6 +661,10 @@
   white-space: normal;
 }
 
+.circle .search-tag {
+  margin-top: 20px;
+}
+
 
 /* ✅ Active Drag State */
 .circle-container:active {
@@ -686,6 +714,7 @@
   display: block;
   max-width: 90%;
 }
+
 
 /* ✅ Preloader Container */
 .preloader-container {
