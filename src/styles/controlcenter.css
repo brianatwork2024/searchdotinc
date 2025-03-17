@@ -81,8 +81,8 @@
     background: #DAE0E51A;
     color: rgba(255, 255, 255, 0.5);
     border: none;
-    padding: 0.625rem 1.25rem;
-    font-size: clamp(0.875rem, 1.5vw, 1rem);
+    padding: 5px 15px;
+    font-size: clamp(0.875rem, 1.5vw, 0.875rem);
     border-radius: 0.3125rem;
     cursor: pointer;
     transition: background 0.3s;
@@ -219,6 +219,84 @@
     color: #31DA89;
 }
 
+
+/* Container for each radio button and its label */
+.radio-option-container {
+    display: flex;
+    align-items: center;
+    gap: 10px; /* Space between button and label */
+}
+
+.radio-option-container:not(.selected):hover {
+    transition: background-color 0.2s ease-in-out;
+}
+
+/* Radio button styling */
+.radio-option {
+    width: 38px; /* Adjust as needed */
+    height: 38px;
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    cursor: pointer;
+    transition: transform 0.2s ease-in-out, background-image 0.2s ease-in-out;
+}
+
+/* Background images for each state */
+.radio-option[data-value="on"] {
+    background-image: url('/images/radio-button-unselected.svg'); /* Default unselected */
+    pointer-events: auto;
+}
+
+.radio-option.selected[data-value="on"] {
+    background-image: url('/images/radio-button-on.svg');
+    pointer-events: none; /* Disable clicking if selected */
+    opacity: 0.6; /* Optional: Visually indicate it's disabled */
+}
+
+.radio-option[data-value="on"]:hover:not(.selected),
+.radio-option[data-value="off"]:hover:not(.selected) {
+    background-image: url('/images/radio-button-hover.svg'); /* Hover state for non-selected buttons */
+    transform: scale(1.1); /* Slight scaling for feedback */
+}
+
+.radio-option[data-value="off"] {
+    background-image: url('/images/radio-button-unselected.svg'); /* Default unselected */
+    pointer-events: auto;
+}
+
+.radio-option.selected[data-value="off"] {
+    background-image: url('/images/radio-button-off.svg');
+    pointer-events: none; /* Disable clicking if selected */
+    opacity: 0.6; /* Optional: Visually indicate it's disabled */
+}
+
+/* Disable the "delete" button */
+.radio-option[data-value="delete"] {
+    background-image: url('/images/radio-button-none.svg'); /* Uses radio-button-none.svg */
+    pointer-events: none; /* Disables clicking */
+    opacity: 0.6; /* Optional: make it appear visually disabled */
+}
+
+/* No hover effect for the disabled "delete" button */
+.radio-option[data-value="delete"]:hover {
+    background-image: url('/images/radio-button-none.svg'); /* Stays the same */
+    transform: none; /* No scaling */
+}
+
+/* Label images */
+.radio-label-image {
+    width: auto;
+    height: 23px;
+}
+
+
+
+
+
+
+
+
 /* ✅ Checkmark Styling */
 .checkmark {
     font-size: 1.5rem;
@@ -256,43 +334,65 @@
     text-align: center;
 }
 
-
-
-
-
-
-/* ✅ Data Type Section */
 .data-type-container {
     display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    justify-content: space-between;
+    flex-direction: column; /* Ensures each button appears on a new line */
+    align-items: flex-start; /* Aligns everything to the left */
+    gap: 15px; /* Space between buttons */
     width: 100%;
+    padding-top: 7px;
 }
 
+/* Ensure .data-type-row matches .control-row */
 .data-type-row {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start; /* Aligns content to the left */
     width: 100%;
-    margin: 0.75rem 0;
+    gap: 10px; /* Matches spacing in .control-row */
+    padding: 12px 0;
 }
 
-/* ✅ Data Type Buttons */
+.data-type-row:hover {
+    background-color: #1A2485;
+    transition: background-color 0.5s ease-in-out;
+}
+
+/* Button styling */
 .data-type-button {
-    background: transparent;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start; /* Ensures content inside is left-aligned */
+    background: none;
     border: none;
-    color: white;
-    font-size: 24px;
-    font-style: italic;
-    font-weight: 500;
-    text-align: left;
+    padding: 0;
     cursor: pointer;
-    width: 100%;
-    transition: color 0.3s ease-in-out;
+    transition: transform 0.2s ease-in-out;
+    width: auto; /* Allows the button to wrap around the image */
+    height: auto;
 }
 
-/* ✅ Hover State */
-.data-type-button:hover {
-    color: #31DA89;
+/* Default image styling */
+.data-type-icon {
+    width: auto; /* Prevents the image from stretching */
+    max-height: 24px; /* Keeps a consistent height */
+    object-fit: contain;
 }
+
+
+/* Special case: Social Media Activity image gets a max height of 30px */
+.social-media-data-container .data-type-icon {
+    max-height: 26px;
+}
+
+/* Hover effect */
+.data-type-button:hover .data-type-icon {
+    transform: scale(1);
+}
+
+
+
+
 
 /* ✅ Your Controls Section */
 .your-controls {
@@ -322,7 +422,7 @@
 /* ✅ Radio Button Group */
 .radio-group {
     display: flex;
-    gap: 1.5rem;
+    gap: 0.5rem;
 }
 
 /* ✅ Individual Radio Option */

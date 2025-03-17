@@ -179,161 +179,66 @@ export default function ControlCenter({ isOpen, onClose, handleLogin }) {
                 </div>
 
                 <div className="accuracy-column">
-                <h3>DATA TYPE</h3>
-                <div className="data-type-container">
-                  {Object.keys(selectedControls).map((setting, index) => (
-                    <div 
-                      key={index} 
-                      className={`data-type-row 
-                        ${setting === "Username Data" ? "username-data-container" : ""} 
-                        ${setting === "Location" ? "location-data-container" : ""} 
-                        ${setting === "Social Media Activity" ? "social-media-data-container" : ""} 
-                        ${setting === "Media Rich Search" ? "media-rich-data-container" : ""}
-                      `}
-                      onMouseEnter={() => {
-                        if (setting === "Username Data") setIsUsernameHovered(true);
-                        if (setting === "Location") setIsLocationHovered(true);
-                        if (setting === "Social Media Activity") setIsSocialMediaHovered(true);
-                        if (setting === "Media Rich Search") setIsMediaRichHovered(true);
-                      }}
-                      onMouseLeave={() => {
-                        if (setting === "Username Data") setIsUsernameHovered(false);
-                        if (setting === "Location") setIsLocationHovered(false);
-                        if (setting === "Social Media Activity") setIsSocialMediaHovered(false);
-                        if (setting === "Media Rich Search") setIsMediaRichHovered(false);
-                      }}
-                      onMouseMove={(event) => {
-                        const boundingRect = event.currentTarget.getBoundingClientRect();
-                        
-                        // Calculate tooltip position relative to the viewport
-                        const offsetX = event.clientX - boundingRect.left + window.scrollX + 200; // Adjust for left margin
-                        const offsetY = event.clientY - boundingRect.top + window.scrollY + 100;  // Adjust for top margin
-
-                        
-                      
-                        const position = { x: offsetX, y: offsetY };
-
-                        
-                      
-                        switch (setting) {
-                          case "Username Data":
-                            setUsernameTooltipPosition(position);
-                            break;
-                          case "Location":
-                            setLocationTooltipPosition(position);
-                            break;
-                          case "Social Media Activity":
-                            position.y += 50; // Move tooltip lower
-                            setSocialMediaTooltipPosition(position);
-                            break;
-                          case "Media Rich Search":
-                            position.y += 220; // Move tooltip lower
-                            setMediaRichTooltipPosition(position);
-                            break;
-                          default:
-                            break;
-                        }
-                      }}
-                      
-                      
-                      
-                    >
-                      <button
-                        className="data-type-button"
-                        onClick={() => setActivePanel(setting === "Username Data" ? "usernameData" : "accuracy")}
+                  <h3>DATA TYPE</h3>
+                  <div className="data-type-container">
+                    {Object.keys(selectedControls).map((setting, index) => (
+                      <div 
+                        key={index} 
+                        className={`data-type-row 
+                          ${setting === "Username Data" ? "username-data-container" : ""} 
+                          ${setting === "Location" ? "location-data-container" : ""} 
+                          ${setting === "Social Media Activity" ? "social-media-data-container" : ""} 
+                          ${setting === "Media Rich Search" ? "media-rich-data-container" : ""}
+                        `}
                       >
-                        {setting}
-                      </button>
-
-                      {/* Tooltip for Username Data */}
-                      {setting === "Username Data" && isUsernameHovered && (
-                        <div 
-                          className="tooltip username-tooltip"
-                          style={{
-                            right: usernameTooltipPosition.x,
-                            top: usernameTooltipPosition.y,
-                          }}
+                        <button
+                          className="data-type-button"
+                          onClick={() => setActivePanel(setting === "Username Data" ? "usernameData" : "accuracy")}
                         >
-                          <strong>Username Data (~6%)</strong>
-                          <p><strong>Click-Through Rates:</strong> High correlation between results clicked and relevance, helping to refine future rankings.</p>
-                          <p><strong>Time Spent on Pages (Dwell Time):</strong> Indicates the usefulness and engagement level of a page.</p>
-                          <p><strong>Bounce Rate:</strong> High bounce rates signal poor content or irrelevant results.</p>
-                          <p><strong>Search Session Patterns:</strong> Helps understand multi-step queries or searches with multiple facets.</p>
-                          <p><strong>Search History:</strong> Helps refine personalized and repeated queries, though more secondary.</p>
-                        </div>
-                      )}
-
-                      {/* Tooltip for Location Data */}
-                      {setting === "Location" && isLocationHovered && (
-                        <div 
-                          className="tooltip location-tooltip"
-                          style={{
-                            right: locationTooltipPosition.x,
-                            top: locationTooltipPosition.y,
-                          }}
-                        >
-                          <strong>Location (~4%)</strong>
-                          <p>Kinda important if you want to know how to locate or get somewhere. It’s essential for providing localized results for queries with geographic intent.</p>
-                          <p><strong>Local Search Patterns:</strong> Helps boost regional relevance, e.g., trending topics in a specific area or categories like food, entertainment, etc.</p>
-                        </div>
-                      )}
-
-                      {/* Tooltip for Social Media Activity */}
-                      {setting === "Social Media Activity" && isSocialMediaHovered && (
-                        <div 
-                          className="tooltip social-media-tooltip"
-                          style={{
-                            right: socialMediaTooltipPosition.x,
-                            top: socialMediaTooltipPosition.y,
-                          }}
-                        >
-                          <strong>Social Media Activity (~5%)</strong>
-                          <p><strong>Engagement Metrics:</strong> Tracks shares, likes, and comments to gauge content popularity.</p>
-                          <p><strong>Trending Topics:</strong> Helps personalize search results based on real-time trends from social platforms.</p>
-                          <p><strong>Influencer Impact:</strong> Identifies trusted sources and their credibility based on social reach.</p>
-                        </div>
-                      )}
-
-                      {/* Tooltip for Media Rich Search */}
-                      {setting === "Media Rich Search" && isMediaRichHovered && (
-                        <div 
-                          className="tooltip media-rich-tooltip"
-                          style={{
-                            right: mediaRichTooltipPosition.x,
-                            top: mediaRichTooltipPosition.y,
-                          }}
-                        >
-                          <strong>Media Rich, Image or media content. (~2%)</strong>
-                          <p><strong>Image / video / audio search patterns:</strong> Assesses alternative media consumption patterns.</p>
-                          <p><strong>Share / commentary sentiment:</strong> Can also help mitigate social bias.</p>
-                        </div>
-                      )}
-
-                    </div>
-                  ))}
-                </div>
-              </div>
-                <div className="accuracy-column">
-                  <h3>YOUR CONTROLS</h3>
-                  {Object.keys(selectedControls).map((setting, index) => (
-                    <div key={index} className="control-row">
-                      <div className="radio-group">
-                        {["on", "off", "delete"].map((value) => (
-                          <label key={value} className="radio-option">
-                            <input 
-                              type="radio" 
-                              name={`control-${index}`} 
-                              value={value} 
-                              checked={selectedControls[setting] === value} 
-                              onChange={() => handleControlChange(setting, value)} 
-                            />
-                            <span className="radio-label">{value.toUpperCase()}</span>
-                          </label>
-                        ))}
+                          <img 
+                            src={`/images/data-type-${setting.replace(/\s+/g, '-').toLowerCase()}.svg`} 
+                            alt={`${setting} icon`} 
+                            className="data-type-icon"
+                          />
+                        </button>
                       </div>
-                    </div>
-                  ))}
+                    ))}
+                  </div>
                 </div>
+
+
+
+                <div className="accuracy-column">
+                <h3>YOUR CONTROLS</h3>
+                {Object.keys(selectedControls).map((setting, index) => (
+                  <div key={index} className="control-row">
+                    <div className="radio-group">
+                      {["on", "off", "delete"].map((value) => (
+                        <div key={value} className={`radio-option-container ${value === "delete" ? "disabled" : ""}`}>
+                          {/* Radio button */}
+                          <div
+                            className={`radio-option ${selectedControls[setting] === value ? "selected" : "unselected"}`}
+                            onClick={
+                              value !== "delete" && selectedControls[setting] !== value
+                                ? () => handleControlChange(setting, value)
+                                : undefined
+                            }
+                            data-value={value}
+                          ></div>
+                          {/* Corresponding label image */}
+                          <img
+                            src={`/images/radio-label-${value}.svg`}
+                            alt={`${value} label`}
+                            className="radio-label-image"
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+
 
               </div>
             </div>
