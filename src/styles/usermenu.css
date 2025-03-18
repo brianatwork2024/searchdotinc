@@ -5,26 +5,92 @@
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(0, 0, 0, 0.6); /* Dark overlay */
+
     display: flex;
     justify-content: center;
     align-items: center;
     z-index: 5000;
+    
 }
 
-/* User Menu Panel */
+/* User Menu - Ensures scrolling and does not cover the footer */
 .user-menu {
-    background: rgba(255, 255, 255, 0.2); /* Transparent White Background */
+    background: rgba(255, 255, 255, 0.2);
     width: 80%;
     padding: 20px;
     border-radius: 10px;
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
-    position: relative;
+    position: absolute;
+    top: 300px;
+    left: 50%;
+    transform: translateX(-50%);
     z-index: 5100;
     display: flex;
-    flex-direction: column; /* Ensure correct layout */
+    flex-direction: column;
     align-items: flex-start;
+
+    max-height: calc(100vh - 300px - 50px); /* Ensures it doesn’t cover the footer */
+    overflow-y: auto; /* Enables scrolling */
 }
+
+/* Ensure the parent container has a max height and allows scrolling */
+.comparison-table {
+    width: 100%;
+    max-height: calc(100vh - 300px - 50px); /* Prevents covering footer */
+    overflow-y: auto; /* Enables vertical scrolling */
+    overflow-x: hidden; /* Prevents unwanted horizontal scrolling */
+    display: flex;
+    justify-content: center;
+    align-items: flex-start; /* Aligns content to the top */
+}
+
+/* Image - Covers the full width and enables scrolling */
+.comparison-table-image {
+    width: 100%;
+    height: auto;
+    min-height: unset; /* Prevents forcing full height */
+    object-fit: cover; /* Covers the full width */
+}
+/* Why Search Inc - Ensures full visibility and scrollability */
+.why-search-inc {
+    width: 290px; /* Fixed width */
+    max-height: calc(100vh - 300px - 50px); /* Ensures it does not cover the footer */
+    height: auto; /* Adjusts based on content */
+    overflow-y: auto; /* Enables vertical scrolling */
+    overflow-x: hidden; /* Prevents horizontal scrolling */
+    display: flex;
+    justify-content: center;
+    align-items: flex-start; /* Ensures content starts at the top */
+}
+
+.why-search-inc-image {
+    width: 70%;
+    height: auto;
+    object-fit: cover;
+    display: block;
+    position: relative;
+    top: 360px;
+}
+
+/* Ensure the parent container has a max height and allows scrolling */
+.revenue-share-terms {
+    width: 100%;
+    max-height: calc(100vh - 300px - 50px); /* Prevents covering footer */
+    overflow-y: auto; /* Enables vertical scrolling */
+    overflow-x: hidden; /* Prevents unwanted horizontal scrolling */
+    display: flex;
+    justify-content: center;
+    align-items: flex-start; /* Aligns content to the top */
+}
+
+/* Image - Covers the full width and enables scrolling */
+.revenue-share-image {
+    width: 100%;
+    height: auto;
+    min-height: unset; /* Prevents forcing full height */
+    object-fit: cover; /* Covers the full width */
+}
+
 
 /* User Menu Title Section */
 .um-title {
@@ -81,8 +147,8 @@
     background: #DAE0E51A;
     color: rgba(255, 255, 255, 0.5);
     border: none;
-    padding: 0.625rem 1.25rem;
-    font-size: clamp(0.875rem, 1.5vw, 1rem); /* ✅ Font scales dynamically */
+    padding: 5px 15px;
+    font-size: clamp(0.875rem, 1.5vw, 0.875rem);
     border-radius: 0.3125rem;
     cursor: pointer;
     transition: background 0.3s;
@@ -148,28 +214,13 @@
     width: 100%;
 }
 
-/* ✅ Why Search Inc & Comparison Table View */
-.why-search-inc,
-.comparison-table {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    margin-top: 2rem;
-    width: 100%;
-}
 
-/* ✅ Shared Styling for Images */
-.why-search-inc-image,
+/* Ensure the image scales properly and is fully visible */
 .comparison-table-image {
-    max-width: 100%;
+    width: 100%;
     height: auto;
-    border-radius: 10px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-    
-    /* ✅ Fade-in Effect */
-    opacity: 0;
-    transform: translateY(10px);
-    animation: fadeIn 0.5s ease-out forwards;
+    min-height: 100%; /* Ensures full visibility */
+    object-fit: contain; /* Prevents cropping */
 }
 
 /* ✅ Back Button - Top Right Corner */

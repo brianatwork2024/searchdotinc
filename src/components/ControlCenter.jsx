@@ -89,13 +89,15 @@ export default function ControlCenter({ isOpen, onClose, handleLogin }) {
 
           <div className="cc-user-info">
             <div className="cc-message">
-              <h2>
+            <h2>
                 {activePanel === "accuracy"
                   ? "Maverick, these are your Accuracy Controls"
                   : activePanel === "nuclear"
                   ? "Maverick, this is the Nuclear Option"
                   : activePanel === "usernameData"
                   ? "Maverick, this is Username Data"
+                  : activePanel === "locationData"
+                  ? "Maverick, this is Location Data"
                   : "Maverick, this is your Control Centre"}
               </h2>
             </div>
@@ -106,11 +108,14 @@ export default function ControlCenter({ isOpen, onClose, handleLogin }) {
             <button className="control-center-close" onClick={onClose}>✕</button>
           )}
 
+          
+
           {activePanel !== "default" && (
-            <button className="control-center-back" onClick={() => setActivePanel("default")}>
+            <button className="control-center-back" onClick={() => setActivePanel(activePanel === "usernameData" || activePanel === "locationData" ? "accuracy" : "default")}>
               <img src="/images/icon-back.svg" alt="Back" />
             </button>
           )}
+
         </div>
 
         {activePanel === "default" && (
@@ -123,6 +128,30 @@ export default function ControlCenter({ isOpen, onClose, handleLogin }) {
             <button className="cc-button">Subscription Controls</button>
           </div>
         )}
+
+        {activePanel === "usernameData" && (
+          <div className="username-data-view">
+            <h3>Username Data Overview</h3>
+            <p>&nbsp;</p>
+            <strong>Username Data (~6%)</strong>
+            <p><strong>Click-Through Rates:</strong> High correlation between results clicked and relevance, helping to refine future rankings.</p>
+            <p><strong>Time Spent on Pages (Dwell Time):</strong> Indicates the usefulness and engagement level of a page.</p>
+            <p><strong>Bounce Rate:</strong> High bounce rates signal poor content or irrelevant results.</p>
+            <p><strong>Search Session Patterns:</strong> Helps understand multi-step queries or searches with multiple facets.</p>
+            <p><strong>Search History:</strong> Helps refine personalized and repeated queries, though more secondary.</p>
+          </div>
+        )}
+
+        {activePanel === "locationData" && (
+          <div className="location-data-view">
+            <h3>Location Data Overview</h3>
+            <p>&nbsp;</p>
+            <strong>Location (~4%)</strong>
+            <p>Kinda important if you want to know how to locate or get somewhere. It’s essential for providing localized results for queries with geographic intent.</p>
+            <p><strong>Local Search Patterns:</strong> Helps boost regional relevance, e.g., trending topics in a specific area or categories like food, entertainment, etc.</p>
+          </div>
+        )}
+
 
         {activePanel === "accuracy" && (
           <>
@@ -193,7 +222,7 @@ export default function ControlCenter({ isOpen, onClose, handleLogin }) {
                       >
                         <button
                           className="data-type-button"
-                          onClick={() => setActivePanel(setting === "Username Data" ? "usernameData" : "accuracy")}
+                          onClick={() => setActivePanel(setting === "Username Data" ? "usernameData" : setting === "Location" ? "locationData" : "accuracy")}
                         >
                           <img 
                             src={`/images/data-type-${setting.replace(/\s+/g, '-').toLowerCase()}.svg`} 

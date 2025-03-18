@@ -253,7 +253,6 @@
 /* ✅ Result Text */
 .search-result-text {
   font-size: clamp(1rem, 2vw, 1.5rem);
-  font-weight: bold;
   color: white;
 }
 

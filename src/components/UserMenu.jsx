@@ -24,6 +24,8 @@ export default function UserMenu({ isOpen, onClose, handleLogout }) {
                   ? "Maverick, Why Search Inc?"
                   : activeView === "comparisonTable"
                   ? "Maverick, Search Engine Comparison"
+                  : activeView === "revenueShare"
+                  ? "Maverick, Revenue Share Terms"
                   : "Maverick, this is your Menu"}
               </h2>
             </div>
@@ -50,13 +52,11 @@ export default function UserMenu({ isOpen, onClose, handleLogout }) {
         {/* Default User Menu View */}
         {activeView === "default" && (
           <div className="user-menu-buttons">
-            <button className="user-menu-button">Revenue Share Terms</button>
-            <button className="user-menu-button" onClick={() => setActiveView("whySearchInc")}>
-              Why Search Inc?
+            <button className="user-menu-button" onClick={() => setActiveView("revenueShare")}>
+              Revenue Share Terms
             </button>
-            <button className="user-menu-button" onClick={() => setActiveView("comparisonTable")}>
-              Search Engine Comparison Table
-            </button>
+            <button className="user-menu-button" onClick={() => setActiveView("whySearchInc")}>Why Search Inc?</button>
+            <button className="user-menu-button" onClick={() => setActiveView("comparisonTable")}>Search Engine Comparison Table</button>
           </div>
         )}
 
@@ -82,6 +82,16 @@ export default function UserMenu({ isOpen, onClose, handleLogout }) {
           </div>
         )}
 
+        {/* Revenue Share Terms View */}
+        {activeView === "revenueShare" && (
+          <div className="revenue-share-terms">
+            <img 
+              src="/images/image-revenue-share-terms.png" 
+              alt="Revenue Share Terms" 
+              className="revenue-share-image"
+            />
+          </div>
+        )}
       </div>
     </div>
   );
