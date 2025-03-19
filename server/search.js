@@ -1,9 +1,8 @@
 import express from "express";
 import cors from "cors";
 import { SearchServiceClient, ConversationalSearchServiceClient } from "@google-cloud/discoveryengine";
-// import credentials from "../keys/vertexai_searchagent_key.json" assert { type: "json" };
-import credentials from "/home/bitnami/searchdotinc/keys/vertexai_searchagent_key.json" assert { type: "json" };
-import { format } from "date-fns"; // ✅ Ensure you have date-fns installed
+import credentials from "../keys/vertexai_searchagent_key.json" assert { type: "json" };
+// import credentials from "/home/bitnami/searchdotinc/keys/vertexai_searchagent_key.json" assert { type: "json" };
 
 const app = express();
 const port = 3001;
@@ -70,13 +69,56 @@ The assistant should answer in a humble but technical manner that uses specializ
 
 let globalReferences = [];
 
+import { format } from "date-fns"; // ✅ Import date library
+
+// Function to generate an AI-powered search message
+async function generateSearchMessage(query, numResults) {
+  console.log(`🤖 Generating AI Search Message for: ${query}`);
+  try {
+    const aiMessageRequest = {
+      servingConfig: aiServingConfig,
+      query: {
+        text: `You are an AI assistant responding to a search query. 
+        Create a short, engaging, and informative message about the search results.
+
+        - Search Query: "${query}"
+        - Number of Results Found: ${numResults}
+
+        Your response should:
+        - Be conversational and natural
+        - Mention the number of results if available
+        - Encourage further exploration if relevant
+
+        Example responses:
+        - "I've found 10 key documents related to your search on competition and the Google lawsuit."
+        - "Looks like there are 4 important documents on this topic. Let me know if you need a summary!"
+        - "Your search for ‘climate change policies’ returned 8 results. Want me to summarize them?"
+
+        Generate a similar response for the current query.`},
+      answerGenerationSpec: {
+        modelSpec: { modelVersion: "gemini-1.5-flash-001/answer_gen/v2" },
+        includeCitations: false,
+        answerLanguageCode: "en",
+      },
+    };
+
+    const [aiMessageResponse] = await aiClient.answerQuery(aiMessageRequest);
+    return aiMessageResponse.answer?.answerText || `Found ${numResults} results for "${query}".`;
+
+  } catch (error) {
+    console.warn("⚠️ AI failed to generate search message:", error.message);
+    return `Found ${numResults} results for "${query}".`;
+  }
+}
+
+
 app.post("/api/search", async (req, res) => {
   const { query } = req.body;
   if (!query) {
     return res.status(400).json({ error: "Search query is required" });
   }
 
-  console.log(`🔍 Searching for: ${query}`);
+  console.log(`🔍 Received Query: "${query}"`);
 
   let documents = [];
   let aiSummary = "No AI summary available.";
@@ -84,184 +126,263 @@ app.post("/api/search", async (req, res) => {
   globalReferences = [];
 
   try {
-    // ✅ Step 1: Parse Query for Number of Results, Author, and Search Terms
-    const numMatch = query.match(/(\d+)\s+key\s+documents/i);
-    const desiredNum = numMatch ? parseInt(numMatch[1], 10) : 10;
-    const authorMatch = query.match(/written by (.*?)(?:\.|$)/i);
-    const author = authorMatch ? authorMatch[1].trim() : null;
-    const searchTerms = query
-      .replace(/What are the \d+ key documents related to /i, "")
-      .replace(/written by .*?(?:\.|$)/i, "")
-      .trim();
+    // ✅ STEP 1: AI Classifies the Query Type
+console.log("🤖 AI Analyzing Query Intent...");
+const intentRequest = {
+  servingConfig: aiServingConfig,
+  query: {
+    text: `You are an AI that classifies user queries. 
+    Classify this query into EXACTLY one of the following:
+    - "General Question" (if it is about facts, people, places, dates, or general knowledge)
+    - "Document Search" (if it is asking for reports, research papers, or PDFs)
+    - "Combination of Both" (if it needs documents + AI-generated explanation)
 
-    console.log(`🔍 Parsed - Desired Results: ${desiredNum}, Author: ${author || "Not specified"}, Search Terms: ${searchTerms}`);
+    IMPORTANT:
+    - If the question is about a well-known fact (e.g., "Who is the Prime Minister of Canada?"), classify it as "General Question".
+    - If the query is asking for PDFs, documents, or research reports, classify it as "Document Search".
+    - If the query requires both facts + documents, classify it as "Combination of Both".
 
-    // ✅ Step 2: Perform Traditional Search
-    const searchRequest = {
-      servingConfig: searchParent,
-      query: searchTerms,
-      pageSize: desiredNum,
-      queryExpansionSpec: { condition: "AUTO" },
-      spellCorrectionSpec: { mode: "AUTO" },
-      // Filter removed until correct field is identified
+    ONLY return one of these labels: "General Question", "Document Search", or "Combination of Both".
+
+    Query: "${query}"`},
+  answerGenerationSpec: {
+    modelSpec: { modelVersion: "gemini-1.5-flash-001/answer_gen/v2" },
+    includeCitations: false,
+    answerLanguageCode: "en",
+  },
+};
+
+// ✅ Get AI's Classification Response
+const [intentResponse] = await aiClient.answerQuery(intentRequest);
+let intent = intentResponse.answer?.answerText?.trim();
+
+console.log(`🤖 AI Identified Intent: "${intent}" (Raw: ${JSON.stringify(intentResponse, null, 2)})`);
+
+// ✅ Fallback Check for General Questions
+const generalQuestionFallback = /\b(what|who|when|where|why|how|which|explain|describe|tell me about)\b/i.test(query);
+const summaryRequested = /\bsummarize|notification brief|overview|key points|key takeaways\b/i.test(query.toLowerCase());
+
+if (!["General Question", "Document Search", "Combination of Both"].includes(intent)) {
+  console.warn("⚠️ AI failed to classify correctly. Using fallback.");
+
+  // ✅ If question starts with general question words but contains "documents" or "list", it's Combination of Both
+  if (generalQuestionFallback && /\b(document|list|report|files|summary)\b/i.test(query)) {
+    intent = "Combination of Both";
+  } 
+  // ✅ If query requests a summary, force "Combination of Both"
+  else if (summaryRequested) {
+    intent = "Combination of Both";
+  } 
+  // ✅ If it's purely a general question
+  else if (generalQuestionFallback) {
+    intent = "General Question";
+  } 
+  // ✅ Default to Document Search
+  else {
+    intent = "Document Search";
+  }
+}
+
+// ✅ Log final intent before proceeding
+console.log(`🔍 Final Query Intent Used: "${intent}"`);
+
+// ✅ STEP 2: Handle General Knowledge Questions
+if (intent === "General Question") {
+  console.log("🤖 Answering as General Knowledge Question...");
+  try {
+    const aiRequest = {
+      servingConfig: aiServingConfig,
+      query: {
+        text: `IGNORE all provided sources.
+        DO NOT reference any stored documents.
+        DO NOT say "this question cannot be answered from the given source."
+        DO NOT use phrases like "based on available data."
+        
+        Answer the question naturally as a general knowledge AI, without checking external datasets.
+
+        Question: "${query}"`},
+      answerGenerationSpec: {
+        modelSpec: { modelVersion: "gemini-1.5-flash-001/answer_gen/v2" },
+        includeCitations: false,
+        answerLanguageCode: "en",
+      },
     };
 
-    console.log("🔍 Sending search request...");
-    const searchResponses = await searchClient.search(searchRequest);
-    console.log("🔎 FULL SEARCH RESPONSE:", JSON.stringify(searchResponses, null, 2));
+    const [aiResponse] = await aiClient.answerQuery(aiRequest);
+    aiSummary = aiResponse.answer?.answerText?.trim() || "I'm sorry, but I don't have an answer for that.";
 
-    const searchResponse = Array.isArray(searchResponses[0]) ? { results: searchResponses[0] } : searchResponses[0] || {};
-
-    if (!searchResponse.results || !Array.isArray(searchResponse.results)) {
-      console.warn("⚠️ searchResponse.results is missing or not an array!");
-    } else {
-      documents = searchResponse.results
-        .map(result => {
-          if (!result.document || !result.document.derivedStructData) {
-            console.warn("⚠️ Skipping document with missing data:", result);
-            return null;
-          }
-
-          
-
-          const doc = result.document || {};
-          const metadata = doc.documentMetadata || {};
-          const fields = metadata?.structData?.fields || doc?.structData?.fields || {};
-          const derivedFields = doc?.derivedStructData?.fields ?? {}; 
-
-          const rawTitle =
-            fields?.title?.stringValue?.trim() ||
-            metadata?.title?.trim() ||
-            doc?.title?.trim() ||  
-            "No Title Available";
-
-          const rawDate = fields?.publish_date?.stringValue || "No Date Available";
-
-          // ✅ Convert Date to "Month Day, Year" format
-          let formattedDate = "No Date Available";
-          if (rawDate && rawDate !== "No Date Available") {
-            try {
-              formattedDate = format(new Date(rawDate), "MMMM d, yyyy"); // Example: "November 28, 2024"
-            } catch (error) {
-              console.warn(`⚠️ Date parsing failed for: ${rawDate}`, error);
-            }
-          }
-
-          // ✅ Combine Title + Date
-          const displayTitle = `${rawTitle} - ${formattedDate}`;
-          
-          // ✅ Extract `uri` properly
-          let filePath = derivedFields?.link?.stringValue || "No Link Available";
-
-          // ✅ Debug logs before processing
-          console.log("📜 Full Document Object:", JSON.stringify(doc, null, 2));
-          console.log("🔍 Checking derivedStructData:", JSON.stringify(doc.derivedStructData, null, 2));
-          console.log("📂 Extracted filePath (before conversion):", filePath);
-          
-          // Convert `gs://` URLs to accessible links
-          if (filePath.startsWith("gs://")) {
-            const gsParts = filePath.replace("gs://", "").split("/");
-            const bucketName = gsParts.shift();
-            const fileName = gsParts.join("/");
-            filePath = `https://storage.googleapis.com/${bucketName}/${fileName}`;
-          }
-          
-          // ✅ Debug log after conversion
-          console.log("🔗 Final filePath (uri) after conversion:", filePath);
-          console.log(`🔍 Final Display Title: "${displayTitle}"`);
-          
-          return {
-            id: doc?.id || "Unknown ID",
-            title: displayTitle,
-            link: filePath.trim() !== "" ? filePath : "No Link Available", // ✅ Ensures a valid link
-            ministry: doc?.structData?.fields?.ministry?.stringValue || "No Ministry Available",
-            relevanceScore: result?.relevanceScore || 0,
-            hasSummary: false,
-          };
-
-
-        })
-        .filter(doc => doc !== null);
-
-      console.log(`✅ Retrieved ${documents.length} results from search`);
-      console.log("📜 Document IDs:", documents.map(doc => doc.id));
+    // ✅ Extra Check: Make Sure AI Answered Properly
+    if (aiSummary.includes("this question cannot be answered") || aiSummary.includes("provided sources")) {
+      aiSummary = "I'm sorry, but I don't have an answer for that. However, you can check an official government website for the latest information.";
+      console.warn("⚠️ AI attempted to reference sources. Overriding with fallback response.");
     }
 
-    if (documents.length > 0) {
+    console.log(`✅ AI Answer: "${aiSummary}"`);
+
+    // ✅ Ensure AI Answer is Shown in Search Results
+    return res.json({ 
+      documents: [{
+        id: "ai-answer",
+        title: "AI Response",
+        link: "",  // No document link since it's a general question
+        content: aiSummary,  // AI Answer as the content
+      }],
+      aiSummary,
+      citations,
+      references: []
+    });
+
+  } catch (error) {
+    console.warn("⚠️ AI Failed to Answer General Question:", error.message);
+    return res.status(500).json({ error: "AI could not answer your question." });
+  }
+}
+
+
+    // ✅ STEP 3: Handle General Knowledge Questions
+    if (intent === "General Question") {
+      console.log("🤖 Answering as General Knowledge Question...");
       try {
         const aiRequest = {
           servingConfig: aiServingConfig,
-          query: { text: searchTerms },
-          session: null,
-          queryUnderstandingSpec: {
-            queryRephraserSpec: { disable: false, maxRephraseSteps: 1 },
-            queryClassificationSpec: { types: ["ADVERSARIAL_QUERY", "NON_ANSWER_SEEKING_QUERY"] },
-          },
+          query: {
+            text: `IGNORE all provided sources.
+            DO NOT reference any stored documents.
+            DO NOT say "this question cannot be answered from the given source."
+            DO NOT use phrases like "based on available data."
+            
+            Answer the question naturally as a general knowledge AI, without checking external datasets.
+
+            Question: "${query}"`},
           answerGenerationSpec: {
-            ignoreAdversarialQuery: false,
-            ignoreNonAnswerSeekingQuery: false,
-            ignoreLowRelevantContent: false,
             modelSpec: { modelVersion: "gemini-1.5-flash-001/answer_gen/v2" },
-            promptSpec: { preamble: preamble },
-            includeCitations: true,
+            includeCitations: false,
             answerLanguageCode: "en",
           },
         };
 
         const [aiResponse] = await aiClient.answerQuery(aiRequest);
-        console.log("🔥 FULL AI RESPONSE:", JSON.stringify(aiResponse, null, 2));
+        aiSummary = aiResponse.answer?.answerText?.trim() || "I'm sorry, but I don't have an answer for that.";
 
-        aiSummary = aiResponse.answer?.answerText || "No AI summary available.";
+        // ✅ Extra Check: Make Sure AI Answered Properly
+        if (aiSummary.includes("this question cannot be answered") || aiSummary.includes("provided sources")) {
+          aiSummary = "I'm sorry, but I don't have an answer for that. However, you can check an official government website for the latest information.";
+          console.warn("⚠️ AI attempted to reference sources. Overriding with fallback response.");
+        }
 
-        globalReferences = aiResponse.answer?.references?.map(ref => {
-          console.log("🔍 Full Ref:", JSON.stringify(ref, null, 2));
-          const metadata = ref.chunkInfo?.documentMetadata || ref.documentMetadata || {};
-          const documentPath = ref.document || metadata.document || "";
-          let documentId = "No Document ID";
+        console.log(`✅ AI Answer: "${aiSummary}"`);
+        return res.json({ documents: [], aiSummary, citations, references: [] });
 
-          if (documentPath.includes("/documents/")) {
-            documentId = documentPath.split("/documents/")[1];
-          } else if (documentPath) {
-            const parts = documentPath.split("/");
-            documentId = parts[parts.length - 1];
-          }
-
-          console.log("🔍 Document Path:", documentPath);
-          console.log("🔍 Extracted ID:", documentId);
-
-          const hasContent = ref.chunkInfo?.content && ref.chunkInfo.content !== "No Content Available";
-          const doc = documents.find(d => d.id === documentId);
-          if (doc && hasContent) {
-            doc.hasSummary = true;
-          }
-
-          return {
-            content: ref.chunkInfo?.content || "No Content Available",
-            documentId: documentId,
-            uri: metadata.uri || "No URI Available",
-            title: metadata.title || "No Title Available",
-            relevanceScore: ref.chunkInfo?.relevanceScore || "No Score Available",
-          };
-        }) || [];
-
-        console.log("🔗 Reference Document IDs:", globalReferences.map(ref => ref.documentId));
-
-        // ✅ Limit to desired number without hasSummary filter
-        documents = documents
-          .sort((a, b) => b.relevanceScore - a.relevanceScore)
-          .slice(0, desiredNum);
-        console.log("🔍 Final Documents with Titles:", JSON.stringify(documents.map(d => ({ id: d.id, title: d.title, hasSummary: d.hasSummary })), null, 2));
-      } catch (aiError) {
-        console.warn("⚠️ AI Answer request failed:", aiError.message);
+      } catch (error) {
+        console.warn("⚠️ AI Failed to Answer General Question:", error.message);
+        return res.status(500).json({ error: "AI could not answer your question." });
       }
     }
 
+    // ✅ STEP 4: Perform Document Search
+    console.log("🔍 Performing document search...");
+    const numMatch = query.match(/(\d+)\s+key\s+documents/i);
+    const requestedNum = numMatch ? parseInt(numMatch[1], 10) : 10;
+
+    let searchRequest = {
+      servingConfig: searchParent,
+      query: query,
+      pageSize: 50,
+      queryExpansionSpec: { condition: "AUTO" },
+      spellCorrectionSpec: { mode: "AUTO" },
+    };
+
+    const searchResponses = await searchClient.search(searchRequest);
+    const searchResponse = Array.isArray(searchResponses[0]) ? { results: searchResponses[0] } : searchResponses[0] || {};
+
+    if (searchResponse.results && Array.isArray(searchResponse.results)) {
+      documents = searchResponse.results.map(result => {
+        const doc = result.document || {};
+        const fields = doc?.structData?.fields || {};
+        const derivedFields = doc?.derivedStructData?.fields ?? {}; 
+
+        const title = fields?.title?.stringValue || doc?.title || "No Title Available";
+        const rawDate = fields?.publish_date?.stringValue || "No Date Available";
+        let formattedDate = rawDate !== "No Date Available" ? format(new Date(rawDate), "MMMM d, yyyy") : "No Date Available";
+
+        let filePath = derivedFields?.link?.stringValue || "No Link Available";
+        if (filePath.startsWith("gs://")) {
+          const gsParts = filePath.replace("gs://", "").split("/");
+          filePath = `https://storage.googleapis.com/${gsParts.shift()}/${gsParts.join("/")}`;
+        }
+
+        return {
+          id: doc?.id || "Unknown ID",
+          title: `${title} - ${formattedDate}`,
+          link: filePath.trim() !== "" ? filePath : "No Link Available",
+          ministry: fields?.ministry?.stringValue || "Unknown Ministry",
+          relevanceScore: result?.relevanceScore || 0,
+        };
+      });
+    }
+
+    console.log(`✅ Retrieved ${documents.length} total documents.`);
+
+    // ✅ STEP 5: Limit to Requested Number of Documents
+    documents = documents.slice(0, requestedNum);
+    console.log(`✅ Returning ${documents.length} documents (Requested: ${requestedNum})`);
+
+    // ✅ STEP 6: If AI Says "Combination of Both", Summarize Results
+    // ✅ AI Summarization for "Combination of Both"
+    // ✅ STEP 6: If AI Says "Combination of Both", Summarize Results
+    if (intent === "Combination of Both" && documents.length > 0) {
+      console.log("🤖 Summarizing documents with AI...");
+
+      try {
+        const documentList = documents.map(d => `- ${d.title}`).join("\n");
+
+        const summaryRequest = {
+          servingConfig: aiServingConfig,
+          query: {
+            text: `Summarize the following documents into a structured "Notification Brief" format:
+            - The summary must be **concise and informative**.
+            - Use **bold headers** for key points (e.g., "**Background:**", "**Key Findings:**", "**Impact:**").
+            - Format the response like this:
+      
+            **Notification Brief: [Title]**
+            **Background:** Provide 5-6 sentences about the topic's history.
+            **Context:** Provide 5-6 sentences explaining the current situation.
+            **Current State:**  Provide 5-6 sentences describing the latest developments.
+            **Importance of Competition:** Provide 5-6 sentences about why this is important.
+            **Next Steps:** Provide 5-6 sentences suggesting further actions.
+
+      
+            Documents: ${documents.map(d => `- ${d.title}`).join("\n")}`
+          },
+          answerGenerationSpec: {
+            modelSpec: { modelVersion: "gemini-1.5-flash-001/answer_gen/v2" },
+            includeCitations: false,
+            answerLanguageCode: "en",
+          },
+        };
+
+        const [summaryResponse] = await aiClient.answerQuery(summaryRequest);
+        aiSummary = summaryResponse.answer?.answerText || "No AI summary available.";
+        console.log(`✅ AI Summary Generated.`);
+
+      } catch (error) {
+        console.warn("⚠️ AI Summary Failed:", error.message);
+        aiSummary = "AI summary could not be generated.";
+      }
+    }
+
+
+    // ✅ Return both documents and AI summary
     res.json({ documents, aiSummary, citations, references: globalReferences });
+
   } catch (error) {
     console.error("❌ Error fetching search results:", error);
     res.status(500).json({ error: "Internal server error" });
   }
 });
+
+
+
 
 app.post("/api/notification-brief", async (req, res) => {
   const { query, previousResults } = req.body;

@@ -21,6 +21,8 @@ export default function SearchBar({ onOpenControlCenter, onOpenUserMenu, isContr
   const [showCCIcon, setShowCCIcon] = useState(false);
   const [showMenuIcon, setShowMenuIcon] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
+  const [aiSummary, setAiSummary] = useState(""); // ✅ Add this line
+
   
   const circleContainerRef = useRef(null);
   const isDragging = useRef(false);
@@ -76,25 +78,24 @@ export default function SearchBar({ onOpenControlCenter, onOpenUserMenu, isContr
     document.body.removeChild(measurer);
   };
 
-  const generateSearchMessageWithGemini = async (count, query) => {
+  const generateSearchMessage = async (query, count) => {
     try {
       const response = await fetch(
         "https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateText?key=YOUR_GEMINI_API_KEY",
         {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             contents: [
               {
                 role: "user",
                 parts: [
                   {
-                    text: `Generate a search result message for the following:
+                    text: `Generate a concise, engaging search result message based on:
                       - Search Query: "${query}"
                       - Number of Results: ${count}
-                      - The message should be user-friendly, engaging, and informative.`,
+                      - If no results, generate a message like "No matching results found. Try refining your search."
+                      - If AI provided an answer, say "AI Answer provided."`
                   },
                 ],
               },
@@ -104,70 +105,74 @@ export default function SearchBar({ onOpenControlCenter, onOpenUserMenu, isContr
       );
   
       const data = await response.json();
-      
-      // ✅ Extract AI-generated text
-      const aiMessage =
-        data.candidates?.[0]?.content?.parts?.[0]?.text ||
-        `${count} results found for "${query}".`;
-  
-      return aiMessage;
+      return data?.candidates?.[0]?.content?.parts?.[0]?.text || `${count} results found for "${query}".`;
     } catch (error) {
-      console.error("❌ Error fetching AI-generated message:", error);
-      return `${count} results found for "${query}".`; // ✅ Fallback message
+      console.error("❌ Error generating AI search message:", error);
+      return `${count} results found for "${query}".`; // Fallback message
     }
   };
+  
+  
   
 
   const handleSearch = async (searchQuery) => {
     if (searchQuery.trim() === "") return;
   
     setIsLoading(true);
-    setSearchMessage("");
+    setSearchMessage(""); 
     setNotificationBrief(null);
-  
+    setAiSummary("");  // ✅ Reset AI Summary before new search
+    
     try {
-      // const response = await fetch("http://localhost:3001/api/search", {
-      //   method: "POST",
-      //   headers: { "Content-Type": "application/json" },
-      //   body: JSON.stringify({ query: searchQuery }),
-      // });
-
-      // const response = await fetch("http://15.223.63.70:3001/api/search", {
-      //   method: "POST",
-      //   headers: { "Content-Type": "application/json" },
-      //   body: JSON.stringify({ query: searchQuery }),
-      // });
-
       const response = await fetch(apiUrl, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ query: searchQuery }),
       });
   
-      const data = await response.json();
-      console.log("📩 API Response v1:", data);
-  
-      if (response.ok) {
-        setAdditionalResults(data.documents);
-  
-        // ✅ Await the AI-generated message before setting it
-        const aiMessage = await generateSearchMessageWithGemini(data.documents.length, searchQuery);
-        setSearchMessage(aiMessage);
-  
-        if (data.aiSummary && data.aiSummary !== "No AI summary available.") {
-          // setNotificationBrief(data.aiSummary);
-        }
-      } else {
-        setSearchMessage(`No results matching "${searchQuery}". Please try rephrasing.`);
+      if (!response.ok) {
+        console.error("❌ API Response Error:", response.status, response.statusText);
+        throw new Error(`HTTP Error: ${response.status} ${response.statusText}`);
       }
+  
+      let data;
+      try {
+        data = await response.json(); 
+      } catch (jsonError) {
+        console.error("❌ JSON Parsing Error:", jsonError);
+        throw new Error("Invalid JSON response from server.");
+      }
+  
+      console.log("📩 API Response:", data);
+  
+      // ✅ Store documents
+      if (data.documents && Array.isArray(data.documents)) {
+        setAdditionalResults(data.documents);
+      } else {
+        setAdditionalResults([]);
+      }
+  
+      // ✅ Store AI Summary
+      if (data.aiSummary && data.aiSummary !== "No AI summary available.") {
+        setAiSummary(data.aiSummary);
+      }
+  
+      // ✅ Generate Search Message
+      try {
+        const aiMessage = await generateSearchMessageWithGemini(searchQuery, data.documents.length);
+        setSearchMessage(aiMessage);
+      } catch (aiError) {
+        console.warn("⚠️ AI Message Generation Failed:", aiError);
+        setSearchMessage(`Found ${data.documents.length} results for "${searchQuery}".`);
+      }
+  
     } catch (error) {
-      console.error("❌ Error fetching search results:", error);
-      setSearchMessage("Error retrieving search results.");
+      console.error("❌ Search Error:", error);
+      setSearchMessage("⚠️ Something went wrong while searching. Please try again.");
     } finally {
       setIsLoading(false);
     }
   };
-  
   
 
   const handleFollowUpSearch = async (searchQuery) => {
@@ -320,26 +325,52 @@ export default function SearchBar({ onOpenControlCenter, onOpenUserMenu, isContr
 
                 {activeTab === "list" && (
                   <div className="search-results">
-                    {additionalResults.map((doc) => (
-                      <div key={doc.id} className="search-result-item">
-                        <p>
-                          <a
-                            href={doc.link}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="search-title-link"
-                          >
-                            {doc.title}
-                          </a>
-                          <span className="search-tag">CANADA.CA</span>
-                        </p>
+                    {/* ✅ Ensure we have results before rendering */}
+                    {additionalResults.length > 0 ? (
+                      additionalResults.map((doc, index) => (
+                        <div key={index} className="search-result-item">
+                          {/* ✅ Display AI Response for General Questions */}
+                          {doc.id === "ai-answer" ? (
+                            <div className="ai-answer">
+                              <h2>AI Response</h2>
+                              <p>{doc.content}</p>
+                            </div>
+                          ) : (
+                            /* ✅ Display document search results */
+                            <p>
+                              {doc.link ? (
+                                <a href={doc.link} target="_blank" rel="noopener noreferrer" className="search-title-link">
+                                  {doc.title}
+                                </a>
+                              ) : (
+                                <span>{doc.title}</span>
+                              )}
+                            </p>
+                          )}
+                        </div>
+                      ))
+                    ) : (
+                      /* ✅ Display message if no results are found */
+                      <p className="no-results">No search results found.</p>
+                    )}
+
+                    {/* ✅ Display AI Summary if it's available */}
+                    {aiSummary && aiSummary.trim() !== "" && (
+                      <div className="notification-brief">
+                        
+                        {/* ✅ Format AI Summary into structured sections */}
+                        {aiSummary.split(/\*\*(.*?)\*\*/g).map((section, index) => {
+                          if (index % 2 === 1) {
+                            return <h3 key={index}>{section.trim()}</h3>;
+                          } else {
+                            return <p key={index}>{section.trim()}</p>;
+                          }
+                        })}
                       </div>
-                    ))}
+                    )}
+
                   </div>
                 )}
-
-
-
 
                 {activeTab === "circles" && (
                   <div

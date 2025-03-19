@@ -1,14 +1,20 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import "../styles/usermenu.css";
 
 export default function UserMenu({ isOpen, onClose, handleLogout }) {
   const [activeView, setActiveView] = useState("default"); // Tracks the current view
+  const [menuTop, setMenuTop] = useState("300px"); // Default top position
+
+  // ✅ Update top position dynamically when activeView changes
+  useEffect(() => {
+    setMenuTop(activeView === "default" ? "300px" : "180px");
+  }, [activeView]);
 
   if (!isOpen) return null; // Prevents rendering when closed
 
   return (
     <div className="user-menu-overlay" onClick={onClose}>
-      <div className="user-menu" onClick={(e) => e.stopPropagation()}>
+      <div className="user-menu" onClick={(e) => e.stopPropagation()} style={{ top: menuTop }}>
 
         {/* User Menu Header */}
         <div className="um-title">
@@ -20,7 +26,7 @@ export default function UserMenu({ isOpen, onClose, handleLogout }) {
           <div className="um-user-info">
             <div className="um-message">
               <h2>
-                {activeView === "whySearchInc" 
+                {activeView === "whySearchInc"
                   ? "Maverick, Why Search Inc?"
                   : activeView === "comparisonTable"
                   ? "Maverick, Search Engine Comparison"
@@ -55,8 +61,12 @@ export default function UserMenu({ isOpen, onClose, handleLogout }) {
             <button className="user-menu-button" onClick={() => setActiveView("revenueShare")}>
               Revenue Share Terms
             </button>
-            <button className="user-menu-button" onClick={() => setActiveView("whySearchInc")}>Why Search Inc?</button>
-            <button className="user-menu-button" onClick={() => setActiveView("comparisonTable")}>Search Engine Comparison Table</button>
+            <button className="user-menu-button" onClick={() => setActiveView("whySearchInc")}>
+              Why Search Inc?
+            </button>
+            <button className="user-menu-button" onClick={() => setActiveView("comparisonTable")}>
+              Search Engine Comparison Table
+            </button>
           </div>
         )}
 

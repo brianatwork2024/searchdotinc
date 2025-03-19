@@ -593,8 +593,14 @@
   padding: 15px;
   border-radius: 8px;
   width: 100%;
-  max-width: 80%;
-  margin-left: 120px;
+}
+
+.notification-brief h3 {
+  font-size: 32px;
+}
+.notification-brief p {
+  font-size: 32px;
+  margin-bottom: 25px;
 }
 
 .notification-brief-container button {

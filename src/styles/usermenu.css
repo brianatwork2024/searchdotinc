@@ -29,7 +29,7 @@
     flex-direction: column;
     align-items: flex-start;
 
-    max-height: calc(100vh - 300px - 50px); /* Ensures it doesn’t cover the footer */
+    max-height: calc(100vh - 300px); /* Ensures it doesn’t cover the footer */
     overflow-y: auto; /* Enables scrolling */
 }
 
