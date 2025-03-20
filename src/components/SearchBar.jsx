@@ -22,6 +22,8 @@ export default function SearchBar({ onOpenControlCenter, onOpenUserMenu, isContr
   const [showMenuIcon, setShowMenuIcon] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
   const [aiSummary, setAiSummary] = useState(""); // ✅ Add this line
+  const [searchIntent, setSearchIntent] = useState(""); // Track search intent
+
 
   
   const circleContainerRef = useRef(null);
@@ -124,6 +126,7 @@ export default function SearchBar({ onOpenControlCenter, onOpenUserMenu, isContr
     setSearchMessage(""); 
     setNotificationBrief(null);
     setAiSummary("");  // ✅ Reset AI Summary before new search
+    setSearchIntent(""); // ✅ Reset intent before making a new search
     
     try {
       const response = await fetch(apiUrl, {
@@ -146,6 +149,11 @@ export default function SearchBar({ onOpenControlCenter, onOpenUserMenu, isContr
       }
   
       console.log("📩 API Response:", data);
+
+      // ✅ Store detected search intent
+      if (data.intent) {
+        setSearchIntent(data.intent);
+      }
   
       // ✅ Store documents
       if (data.documents && Array.isArray(data.documents)) {
@@ -159,13 +167,15 @@ export default function SearchBar({ onOpenControlCenter, onOpenUserMenu, isContr
         setAiSummary(data.aiSummary);
       }
   
-      // ✅ Generate Search Message
-      try {
-        const aiMessage = await generateSearchMessageWithGemini(searchQuery, data.documents.length);
-        setSearchMessage(aiMessage);
-      } catch (aiError) {
-        console.warn("⚠️ AI Message Generation Failed:", aiError);
-        setSearchMessage(`Found ${data.documents.length} results for "${searchQuery}".`);
+      // ✅ Generate Search Message only if NOT "General Question"
+      if (detectedIntent !== "General Question") {
+        try {
+          const aiMessage = await generateSearchMessageWithGemini(searchQuery, data.documents.length);
+          setSearchMessage(aiMessage);
+        } catch (aiError) {
+          console.warn("⚠️ AI Message Generation Failed:", aiError);
+          setSearchMessage(`Found ${data.documents.length} results for "${searchQuery}".`);
+        }
       }
   
     } catch (error) {
@@ -290,7 +300,11 @@ export default function SearchBar({ onOpenControlCenter, onOpenUserMenu, isContr
 
             {isLoading && <div className="preloader-container"><div className="spinner"></div></div>}
 
-            {searchMessage && <div className="search-message"><p>{searchMessage}</p></div>}
+            {searchMessage && searchIntent !== "General Question" && (
+              <div className="search-message">
+                <p>{searchMessage}</p>
+              </div>
+            )}
 
             {additionalResults.length > 0 && (
               <div className="additional-results">
@@ -333,10 +347,7 @@ export default function SearchBar({ onOpenControlCenter, onOpenUserMenu, isContr
                         <div key={index} className="search-result-item">
                           {/* ✅ Display AI Response for General Questions */}
                           {doc.id === "ai-answer" ? (
-                            <div className="ai-answer">
-                              <h2>AI Response</h2>
-                              <p>{doc.content}</p>
-                            </div>
+                            <div className="ai-answer" dangerouslySetInnerHTML={{ __html: doc.content }} />
                           ) : (
                             /* ✅ Display document search results */
                             <p>
@@ -357,7 +368,7 @@ export default function SearchBar({ onOpenControlCenter, onOpenUserMenu, isContr
                     )}
 
                     {/* ✅ Display AI Summary if it's available */}
-                    {aiSummary && aiSummary.trim() !== "" && (
+                    {aiSummary && aiSummary.trim() !== "" && searchIntent !== "General Question" && (
                       <div className="notification-brief">
                         
                         {/* ✅ Format AI Summary into structured sections */}
@@ -440,7 +451,7 @@ export default function SearchBar({ onOpenControlCenter, onOpenUserMenu, isContr
               </div>
             )}
 
-            {notificationBrief && (
+            {notificationBrief && searchIntent !== "General Question" && (
               <div className="notification-brief-container">
                 <button onClick={() => setIsBriefVisible(!isBriefVisible)}>
                   {isBriefVisible ? "Hide Brief" : "Show Brief"}

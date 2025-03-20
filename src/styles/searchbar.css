@@ -725,6 +725,10 @@
   max-width: 90%;
 }
 
+.ai-answer ol {
+  padding-left: 40px;
+}
+
 
 /* ✅ Preloader Container */
 .preloader-container {

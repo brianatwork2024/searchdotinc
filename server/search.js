@@ -154,7 +154,7 @@ const intentRequest = {
 
 // ✅ Get AI's Classification Response
 const [intentResponse] = await aiClient.answerQuery(intentRequest);
-let intent = intentResponse.answer?.answerText?.trim();
+let intent = intentResponse?.answer?.answerText?.trim() || "Unknown";
 
 console.log(`🤖 AI Identified Intent: "${intent}" (Raw: ${JSON.stringify(intentResponse, null, 2)})`);
 
@@ -197,19 +197,47 @@ if (intent === "General Question") {
         DO NOT reference any stored documents.
         DO NOT say "this question cannot be answered from the given source."
         DO NOT use phrases like "based on available data."
-        
+    
         Answer the question naturally as a general knowledge AI, without checking external datasets.
-
-        Question: "${query}"`},
+    
+        **🔹 STRICT HTML FORMATTING INSTRUCTIONS (DO NOT IGNORE):**
+        - Use <h3> for section headers.
+        - Use <p> for paragraphs.
+        - Use <ul> and <li> for bullet points.
+        - Use <strong> instead of bold (**).
+        - DO NOT output plain text or markdown—return only valid HTML.
+        - DO NOT include HTML tags inside code blocks. Just output clean HTML.
+    
+        ---
+        **Example Response Format:**
+        <h3>What is AI?</h3>
+        <p>AI stands for Artificial Intelligence. It enables machines to learn from experience and perform tasks that require human-like intelligence.</p>
+    
+        <h3>How does AI work?</h3>
+        <p>AI uses machine learning and neural networks to analyze data. It improves over time by recognizing patterns.</p>
+    
+        <h3>Example</h3>
+        <ul>
+          <li>Chatbots like ChatGPT use AI to generate responses based on context.</li>
+        </ul>
+    
+        ---
+        **Now, provide a structured response for:** "${query}"`,
+      },
       answerGenerationSpec: {
         modelSpec: { modelVersion: "gemini-1.5-flash-001/answer_gen/v2" },
         includeCitations: false,
         answerLanguageCode: "en",
       },
     };
+    
+    
 
     const [aiResponse] = await aiClient.answerQuery(aiRequest);
     aiSummary = aiResponse.answer?.answerText?.trim() || "I'm sorry, but I don't have an answer for that.";
+
+    // ✅ Remove "```html" at the start and "```" at the end
+    aiSummary = aiSummary.replace(/^```html\s*/, "").replace(/```$/, "");
 
     // ✅ Extra Check: Make Sure AI Answered Properly
     if (aiSummary.includes("this question cannot be answered") || aiSummary.includes("provided sources")) {
@@ -227,6 +255,7 @@ if (intent === "General Question") {
         link: "",  // No document link since it's a general question
         content: aiSummary,  // AI Answer as the content
       }],
+      intent,
       aiSummary,
       citations,
       references: []
@@ -253,6 +282,28 @@ if (intent === "General Question") {
             
             Answer the question naturally as a general knowledge AI, without checking external datasets.
 
+            **🔹 Formatting Instructions (MUST FOLLOW):**
+            - Use **bold section headers** (e.g., "**Background:**").
+            - Use **new lines** between sections (force with **\n\n**).
+            - If listing points, use bullet points (**- Point 1, - Point 2**).
+            - If providing an example, include a **bold "Example:" heading**.
+            - If defining something, start with **"Definition:"** followed by a short, clear explanation.
+            - DO NOT output in a single block of text. Use structured paragraphs.
+
+            **Example Format:**
+            **What is AI?**
+            - AI stands for Artificial Intelligence.
+            - It enables machines to learn from experience and perform tasks that require human-like intelligence.
+
+            **How does AI work?**
+            - AI uses machine learning and neural networks to analyze data.
+            - It improves over time by recognizing patterns.
+
+            **Example:**
+            - Chatbots like ChatGPT use AI to generate responses based on context.
+
+            Now, format your answer similarly:
+
             Question: "${query}"`},
           answerGenerationSpec: {
             modelSpec: { modelVersion: "gemini-1.5-flash-001/answer_gen/v2" },
@@ -270,8 +321,8 @@ if (intent === "General Question") {
           console.warn("⚠️ AI attempted to reference sources. Overriding with fallback response.");
         }
 
-        console.log(`✅ AI Answer: "${aiSummary}"`);
-        return res.json({ documents: [], aiSummary, citations, references: [] });
+        console.log(`✅ AI Answer (Formatted):\n${aiSummary}`);
+        return res.json({ documents: [], intent, aiSummary, citations, references: [] });
 
       } catch (error) {
         console.warn("⚠️ AI Failed to Answer General Question:", error.message);
