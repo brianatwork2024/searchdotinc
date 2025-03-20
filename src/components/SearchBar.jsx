@@ -58,6 +58,8 @@ export default function SearchBar({ onOpenControlCenter, onOpenUserMenu, isContr
     setQuery(text);
     setAdditionalResults([]);
     setSearchMessage("");
+    setNotificationBrief(null); // ✅ Clear AI summary results
+    setFollowUpQuery(""); // ✅ Clear the follow-up input field
 
     if (circleContainerRef.current) {
       circleContainerRef.current.scrollLeft = 0;
@@ -251,7 +253,7 @@ export default function SearchBar({ onOpenControlCenter, onOpenUserMenu, isContr
       if (heading && content) {
         formattedSections.push(
           <div key={i} className="notification-section">
-            <h2>{heading}</h2>
+            <h3>{heading}</h3>
             <p>{content}</p>
           </div>
         );

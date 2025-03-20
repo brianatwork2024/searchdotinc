@@ -581,6 +581,11 @@
 
 
 /* ✅ Notification Brief Container */
+.notification-brief-container {
+  max-width: 80%;
+  margin-left: 120px;
+}
+
 .notification-section {
   margin-bottom: 25px;
 }
