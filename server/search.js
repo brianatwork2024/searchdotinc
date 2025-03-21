@@ -167,30 +167,41 @@ const isGeneralQuestion = generalQuestionWords.test(query);
 const isDocumentSearch = documentKeywords.test(query);
 const requestsSummary = /\bsummarize|notification brief|overview|key points|key takeaways\b/i.test(query.toLowerCase());
 
+let mentionsMinistry = false;
 let ministryName = "";
 
-// ✅ Detect Ministry Mentioned in the Query
-const ministryMatch = query.match(/\b(ISED|Innovation, Science and Economic Development Canada|Privy Council Office|Treasury Board|Canadian Heritage)\b/i);
-const mentionsMinistry = ministryMatch ? ministryMatch[0] : null;
+// ✅ Extract the ministry name if the query specifies "written by" or similar phrasing
+const ministryMatch = query.match(ministryKeywords);
+if (ministryMatch) {
+  ministryName = ministryMatch[2].trim();
+  mentionsMinistry = true;
+}
 
-
-// ✅ Determine Correct Intent
+// ✅ If the intent isn't one of the expected values, classify it again
 if (!["General Question", "Document Search", "Combination of Both"].includes(intent)) {
   console.warn("⚠️ AI failed to classify correctly. Using fallback.");
 
-  if (mentionsMinistry && documentKeywords) {
-    intent = "Combination of Both"; // ✅ Force search + AI summary when a ministry is mentioned
-  } else if (documentKeywords) {
-    intent = "Document Search";
-  } else {
+  // ✅ If the query is a question AND mentions documents, use "Combination of Both"
+  if (isGeneralQuestion && isDocumentSearch) {
+    intent = "Combination of Both";
+  } 
+  // ✅ If the query requests a summary, force "Combination of Both"
+  else if (requestsSummary) {
+    intent = "Combination of Both";
+  } 
+  // ✅ If it mentions a ministry + document-related words, force "Combination of Both"
+  else if (mentionsMinistry && isDocumentSearch) {
+    intent = "Combination of Both";
+  } 
+  // ✅ If it's a general question with no document context, treat it as a "General Question"
+  else if (isGeneralQuestion) {
     intent = "General Question";
+  } 
+  // ✅ Default to "Document Search" if it mentions documents but is not phrased as a question
+  else {
+    intent = "Document Search";
   }
 }
-
-console.log(`📌 Detected Ministry Reference: "${mentionsMinistry}"`);
-console.log(`🔍 Final Query Intent Used: "${intent}"`);
-
-
 
 // ✅ Log final classification result
 console.log(`🔍 Final Query Intent Used: "${intent}"`);
@@ -352,13 +363,7 @@ if (intent === "General Question") {
     console.log("🔍 Performing document search...");
     const numMatch = query.match(/(\d+)\s+key\s+documents/i);
     const requestedNum = numMatch ? parseInt(numMatch[1], 10) : 10;
-
-    let searchQuery = query;
-
-  // ✅ If a ministry is detected, prioritize filtering by it
-  if (mentionsMinistry) {
-    searchQuery += ` ministry:"${ministryName}"`;
-  }
+    
 
     let searchRequest = {
       servingConfig: searchParent,
