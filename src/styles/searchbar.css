@@ -608,6 +608,13 @@
   margin-bottom: 25px;
 }
 
+.notification-brief ul {
+  padding-left: 40px;;
+}
+.notification-brief ul li {
+  font-size: 32px;
+}
+
 .notification-brief-container button {
   margin-left: 120px;
 }

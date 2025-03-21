@@ -368,18 +368,11 @@ export default function SearchBar({ onOpenControlCenter, onOpenUserMenu, isContr
                     )}
 
                     {/* ✅ Display AI Summary if it's available */}
-                    {aiSummary && aiSummary.trim() !== "" && searchIntent !== "General Question" && (
-                      <div className="notification-brief">
-                        
-                        {/* ✅ Format AI Summary into structured sections */}
-                        {aiSummary.split(/\*\*(.*?)\*\*/g).map((section, index) => {
-                          if (index % 2 === 1) {
-                            return <h3 key={index}>{section.trim()}</h3>;
-                          } else {
-                            return <p key={index}>{section.trim()}</p>;
-                          }
-                        })}
-                      </div>
+                    {aiSummary && aiSummary.trim() !== "" && (
+                      <div
+                        className={`notification-brief cmb1 ${searchIntent === "General Question" ? "html-format" : ""}`}
+                        dangerouslySetInnerHTML={{ __html: aiSummary }}
+                      />
                     )}
 
                   </div>
@@ -458,7 +451,7 @@ export default function SearchBar({ onOpenControlCenter, onOpenUserMenu, isContr
                 </button>
 
                 {isBriefVisible && (
-                  <div className="notification-brief">
+                  <div className="notification-brief cmb2">
                     {isFollowUpLoading ? (
                       <div className="preloader-container">
                         <div className="spinner"></div>

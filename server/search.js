@@ -152,9 +152,16 @@ const intentRequest = {
   },
 };
 
-// ✅ Get AI's Classification Response
 const [intentResponse] = await aiClient.answerQuery(intentRequest);
-let intent = intentResponse?.answer?.answerText?.trim() || "Unknown";
+let rawIntent = intentResponse?.answer?.answerText?.trim() || "Unknown";
+
+// ✅ Only accept known intents, otherwise treat as Unknown
+const validIntents = ["General Question", "Document Search", "Combination of Both"];
+let intent = validIntents.includes(rawIntent) ? rawIntent : "Unknown";
+
+if (intent === "Unknown") {
+  console.warn(`⚠️ AI returned unrecognized intent: "${rawIntent}". Defaulting to fallback logic.`);
+}
 
 console.log(`🤖 AI Identified Intent: "${intent}" (Raw: ${JSON.stringify(intentResponse, null, 2)})`);
 
@@ -166,6 +173,8 @@ const ministryKeywords = /\b(written by|published by|issued by)\s+([\w\s]+)\b/i;
 const isGeneralQuestion = generalQuestionWords.test(query);
 const isDocumentSearch = documentKeywords.test(query);
 const requestsSummary = /\bsummarize|notification brief|overview|key points|key takeaways\b/i.test(query.toLowerCase());
+const ministryRefs = ["ised", "innovation", "privy council", "finance canada", "health canada"];
+const ministryMentioned = ministryRefs.some(min => query.toLowerCase().includes(min));
 
 let mentionsMinistry = false;
 let ministryName = "";
@@ -177,37 +186,41 @@ if (ministryMatch) {
   mentionsMinistry = true;
 }
 
-// ✅ If the intent isn't one of the expected values, classify it again
-if (!["General Question", "Document Search", "Combination of Both"].includes(intent)) {
-  console.warn("⚠️ AI failed to classify correctly. Using fallback.");
+// ✅ Log original AI answer
+console.log(`🤖 AI Identified Intent: "${intent}"`);
 
-  // ✅ If the query is a question AND mentions documents, use "Combination of Both"
-  if (isGeneralQuestion && isDocumentSearch) {
-    intent = "Combination of Both";
-  } 
-  // ✅ If the query requests a summary, force "Combination of Both"
-  else if (requestsSummary) {
-    intent = "Combination of Both";
-  } 
-  // ✅ If it mentions a ministry + document-related words, force "Combination of Both"
-  else if (mentionsMinistry && isDocumentSearch) {
-    intent = "Combination of Both";
-  } 
-  // ✅ If it's a general question with no document context, treat it as a "General Question"
-  else if (isGeneralQuestion) {
-    intent = "General Question";
-  } 
-  // ✅ Default to "Document Search" if it mentions documents but is not phrased as a question
-  else {
-    intent = "Document Search";
-  }
+// ✅ Apply override logic regardless of whether AI returned a valid label
+const lowerQuery = query.toLowerCase();
+
+const mentionsAuthorship = /\b(written by|published by|from|authored by)\b/i.test(lowerQuery);
+const mentionsDigitalCharter = lowerQuery.includes("digital charter");
+
+
+const generalQuestionFallback = isGeneralQuestion; // keep consistent naming
+
+const shouldBeCombination =
+  (isGeneralQuestion && isDocumentSearch) ||
+  requestsSummary ||
+  (mentionsMinistry && isDocumentSearch) ||
+  mentionsDigitalCharter ||
+  (generalQuestionFallback && mentionsAuthorship) ||
+  (generalQuestionFallback && ministryMentioned);
+
+// ✅ Override AI intent if needed
+if (shouldBeCombination) {
+  console.warn(`⚠️ Overriding AI intent: "${intent}" → "Combination of Both"`);
+  intent = "Combination of Both";
 }
+
+
 
 // ✅ Log final classification result
 console.log(`🔍 Final Query Intent Used: "${intent}"`);
 if (mentionsMinistry) {
   console.log(`📌 Detected Ministry Reference: "${ministryName}"`);
 }
+
+
 
 
 
@@ -410,30 +423,33 @@ if (intent === "General Question") {
 
     // ✅ STEP 6: If AI Says "Combination of Both", Summarize Results
     // ✅ AI Summarization for "Combination of Both"
-    // ✅ STEP 6: If AI Says "Combination of Both", Summarize Results
     if (intent === "Combination of Both" && documents.length > 0) {
       console.log("🤖 Summarizing documents with AI...");
-
+    
+      let notificationBrief = "No notification brief available.";
+      let htmlSummary = "No HTML summary available.";
+    
       try {
         const documentList = documents.map(d => `- ${d.title}`).join("\n");
-
-        const summaryRequest = {
+    
+        // ✅ Notification Brief prompt (keep as-is)
+        const briefRequest = {
           servingConfig: aiServingConfig,
           query: {
             text: `Summarize the following documents into a structured "Notification Brief" format:
             - The summary must be **concise and informative**.
             - Use **bold headers** for key points (e.g., "**Background:**", "**Key Findings:**", "**Impact:**").
             - Format the response like this:
-      
+    
             **Notification Brief: [Title]**
             **Background:** Provide 5-6 sentences about the topic's history.
             **Context:** Provide 5-6 sentences explaining the current situation.
-            **Current State:**  Provide 5-6 sentences describing the latest developments.
+            **Current State:** Provide 5-6 sentences describing the latest developments.
             **Importance of Competition:** Provide 5-6 sentences about why this is important.
             **Next Steps:** Provide 5-6 sentences suggesting further actions.
-
-      
-            Documents: ${documents.map(d => `- ${d.title}`).join("\n")}`
+    
+            Documents:
+            ${documentList}`
           },
           answerGenerationSpec: {
             modelSpec: { modelVersion: "gemini-1.5-flash-001/answer_gen/v2" },
@@ -441,16 +457,57 @@ if (intent === "General Question") {
             answerLanguageCode: "en",
           },
         };
-
-        const [summaryResponse] = await aiClient.answerQuery(summaryRequest);
-        aiSummary = summaryResponse.answer?.answerText || "No AI summary available.";
-        console.log(`✅ AI Summary Generated.`);
-
+    
+        const [briefResponse] = await aiClient.answerQuery(briefRequest);
+        notificationBrief = briefResponse.answer?.answerText || notificationBrief;
+    
+        // ✅ Clean HTML Summary prompt
+        const htmlRequest = {
+          servingConfig: aiServingConfig,
+          query: {
+            text: `You are an AI summarizer. Provide a clean, factual HTML summary of the following documents.
+            
+            🔹 HTML FORMATTING RULES:
+            - Use <h3> for headers
+            - Use <p> for paragraphs
+            - Use <ul>/<li> for lists
+            - Use <strong> instead of bold (**)
+            - Return clean HTML only, no markdown, no code blocks
+    
+            Focus the summary around: "What are the 10 principles of the Digital Charter?" if relevant.
+    
+            Documents:
+            ${documentList}`
+          },
+          answerGenerationSpec: {
+            modelSpec: { modelVersion: "gemini-1.5-flash-001/answer_gen/v2" },
+            includeCitations: false,
+            answerLanguageCode: "en",
+          },
+        };
+    
+        const [htmlResponse] = await aiClient.answerQuery(htmlRequest);
+        htmlSummary = htmlResponse.answer?.answerText?.trim() || htmlSummary;
+        htmlSummary = htmlSummary.replace(/^```html\s*/, "").replace(/```$/, ""); // cleanup
+    
+        console.log("✅ Both Notification Brief and HTML Summary generated.");
+    
+        // ✅ Return both
+        return res.json({
+          documents,
+          aiSummary: htmlSummary,
+          notificationBrief,
+          intent,
+          citations,
+          references: globalReferences,
+        });
+    
       } catch (error) {
         console.warn("⚠️ AI Summary Failed:", error.message);
-        aiSummary = "AI summary could not be generated.";
+        return res.status(500).json({ error: "AI could not generate summaries." });
       }
     }
+    
 
 
     // ✅ Return both documents and AI summary
