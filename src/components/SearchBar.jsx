@@ -168,7 +168,7 @@ export default function SearchBar({ onOpenControlCenter, onOpenUserMenu, isContr
       }
   
       // ✅ Generate Search Message only if NOT "General Question"
-      if (detectedIntent !== "General Question") {
+      if (data.intent !== "General Question") {
         try {
           const aiMessage = await generateSearchMessageWithGemini(searchQuery, data.documents.length);
           setSearchMessage(aiMessage);

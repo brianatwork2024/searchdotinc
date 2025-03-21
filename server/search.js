@@ -159,29 +159,47 @@ let intent = intentResponse?.answer?.answerText?.trim() || "Unknown";
 console.log(`🤖 AI Identified Intent: "${intent}" (Raw: ${JSON.stringify(intentResponse, null, 2)})`);
 
 // ✅ Fallback Check for General Questions
-const generalQuestionFallback = /\b(what|who|when|where|why|how|which|explain|describe|tell me about)\b/i.test(query);
-const summaryRequested = /\bsummarize|notification brief|overview|key points|key takeaways\b/i.test(query.toLowerCase());
+const generalQuestionWords = /\b(what|who|when|where|why|how|which|explain|describe|tell me about)\b/i;
+const documentKeywords = /\b(document|report|policy|published by|written by|files|summary|research|study|official|legislation|law|guidelines|framework)\b/i;
+const ministryKeywords = /\b(written by|published by|issued by)\s+([\w\s]+)\b/i; // Extracts ministry name
 
+const isGeneralQuestion = generalQuestionWords.test(query);
+const isDocumentSearch = documentKeywords.test(query);
+const requestsSummary = /\bsummarize|notification brief|overview|key points|key takeaways\b/i.test(query.toLowerCase());
+
+let ministryName = "";
+
+// ✅ Detect Ministry Mentioned in the Query
+const ministryMatch = query.match(/\b(ISED|Innovation, Science and Economic Development Canada|Privy Council Office|Treasury Board|Canadian Heritage)\b/i);
+const mentionsMinistry = ministryMatch ? ministryMatch[0] : null;
+
+
+// ✅ Determine Correct Intent
 if (!["General Question", "Document Search", "Combination of Both"].includes(intent)) {
   console.warn("⚠️ AI failed to classify correctly. Using fallback.");
 
-  // ✅ If question starts with general question words but contains "documents" or "list", it's Combination of Both
-  if (generalQuestionFallback && /\b(document|list|report|files|summary)\b/i.test(query)) {
-    intent = "Combination of Both";
-  } 
-  // ✅ If query requests a summary, force "Combination of Both"
-  else if (summaryRequested) {
-    intent = "Combination of Both";
-  } 
-  // ✅ If it's purely a general question
-  else if (generalQuestionFallback) {
-    intent = "General Question";
-  } 
-  // ✅ Default to Document Search
-  else {
+  if (mentionsMinistry && documentKeywords) {
+    intent = "Combination of Both"; // ✅ Force search + AI summary when a ministry is mentioned
+  } else if (documentKeywords) {
     intent = "Document Search";
+  } else {
+    intent = "General Question";
   }
 }
+
+console.log(`📌 Detected Ministry Reference: "${mentionsMinistry}"`);
+console.log(`🔍 Final Query Intent Used: "${intent}"`);
+
+
+
+// ✅ Log final classification result
+console.log(`🔍 Final Query Intent Used: "${intent}"`);
+if (mentionsMinistry) {
+  console.log(`📌 Detected Ministry Reference: "${ministryName}"`);
+}
+
+
+
 
 // ✅ Log final intent before proceeding
 console.log(`🔍 Final Query Intent Used: "${intent}"`);
@@ -334,6 +352,13 @@ if (intent === "General Question") {
     console.log("🔍 Performing document search...");
     const numMatch = query.match(/(\d+)\s+key\s+documents/i);
     const requestedNum = numMatch ? parseInt(numMatch[1], 10) : 10;
+
+    let searchQuery = query;
+
+  // ✅ If a ministry is detected, prioritize filtering by it
+  if (mentionsMinistry) {
+    searchQuery += ` ministry:"${ministryName}"`;
+  }
 
     let searchRequest = {
       servingConfig: searchParent,
