@@ -536,6 +536,8 @@ Answer this question using your own knowledge and reasoning only.
 
 app.post("/api/notification-brief", async (req, res) => {
   const { query, previousResults } = req.body;
+  const isGenericFollowUp = /\b(more info|add more|expand|elaborate|what else|extra context|additional details|enrich|go deeper|more relevant information)\b/i.test(query);
+
 
   if (!query || !previousResults || previousResults.length === 0) {
     return res.status(400).json({ error: "Invalid request data" });
@@ -554,24 +556,14 @@ app.post("/api/notification-brief", async (req, res) => {
         modelSpec: { modelVersion: "gemini-1.5-flash-001/answer_gen/v2" },
         promptSpec: {
           preamble: `
-            Given the following search results, generate a structured notification brief. The response must contain the following sections:
+            You are an assistant improving a previous notification brief. Based on the following documents, add relevant insights, updated facts, or additional context.
 
-            **Background**  
-            Provide 5-6 sentences about the topic's history.
+            Format your response using valid HTML. Only include new content—do not repeat existing information.
 
-            **Context**  
-            Provide 5-6 sentences explaining the current situation.
+            Use headers like:
+            - <h3>Additional Context</h3>
+            - <h3>Updates or Further Details</h3>
 
-            **Current State**  
-            Provide 5-6 sentences describing the latest developments.
-
-            **Importance of Competition**  
-            Provide 5-6 sentences about why this is important.
-
-            **Next Steps**  
-            Provide 5-6 sentences suggesting further actions.
-
-            Format it exactly with these headings.
           `,
         },
         includeCitations: false,
@@ -583,7 +575,7 @@ app.post("/api/notification-brief", async (req, res) => {
     const briefText = briefResponse.answer?.answerText || "No notification brief generated.";
 
     console.log(`✅ Notification Brief Created:\n${briefText}`);
-    res.json({ notificationBrief: briefText });
+    res.json({ aiSummary : briefText });
 
   } catch (error) {
     console.error("❌ Error generating notification brief:", error.message);
