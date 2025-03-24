@@ -23,6 +23,8 @@ export default function SearchBar({ onOpenControlCenter, onOpenUserMenu, isContr
   const [isHovered, setIsHovered] = useState(false);
   const [aiSummary, setAiSummary] = useState(""); // ✅ Add this line
   const [searchIntent, setSearchIntent] = useState(""); // Track search intent
+  const [showBrief, setShowBrief] = useState(false);
+
 
 
   
@@ -154,6 +156,12 @@ export default function SearchBar({ onOpenControlCenter, onOpenUserMenu, isContr
       if (data.intent) {
         setSearchIntent(data.intent);
       }
+
+      if (data.showBrief) {
+        setShowBrief(true);
+      } else {
+        setShowBrief(false);
+      }
   
       // ✅ Store documents
       if (data.documents && Array.isArray(data.documents)) {
@@ -165,6 +173,11 @@ export default function SearchBar({ onOpenControlCenter, onOpenUserMenu, isContr
       // ✅ Store AI Summary
       if (data.aiSummary && data.aiSummary !== "No AI summary available.") {
         setAiSummary(data.aiSummary);
+      }
+
+      if (data.notificationBrief && data.notificationBrief !== "No notification brief available.") {
+        setNotificationBrief(data.notificationBrief);
+        setIsBriefVisible(true); // show by default
       }
   
       // ✅ Generate Search Message only if NOT "General Question"
@@ -251,27 +264,32 @@ export default function SearchBar({ onOpenControlCenter, onOpenUserMenu, isContr
   const formatNotificationBrief = (briefText) => {
     if (!briefText || typeof briefText !== "string") return null;
   
-    // Use regex to correctly extract sections that start with "**"
-    const sections = briefText.split(/\*\*(.*?)\*\*/g).filter(section => section.trim() !== "");
+    const regex = /\*\*(.*?)\*\*/g;
+    const matches = [...briefText.matchAll(regex)];
   
-    let formattedSections = [];
+    const formattedSections = [];
   
-    for (let i = 0; i < sections.length; i += 2) {
-      let heading = sections[i]?.trim();
-      let content = sections[i + 1]?.trim() || "No content available."; // Default if no content
+    for (let i = 0; i < matches.length; i++) {
+      const currentMatch = matches[i];
+      const heading = currentMatch[1]?.trim();
   
-      if (heading && content) {
-        formattedSections.push(
-          <div key={i} className="notification-section">
-            <h3>{heading}</h3>
-            <p>{content}</p>
-          </div>
-        );
-      }
+      const contentStart = currentMatch.index + currentMatch[0].length;
+      const contentEnd = i + 1 < matches.length ? matches[i + 1].index : briefText.length;
+  
+      const content = briefText.substring(contentStart, contentEnd).trim();
+  
+      formattedSections.push(
+        <div key={i} className="notification-section">
+          <h3>{heading}</h3>
+          <p>{content}</p>
+        </div>
+      );
     }
   
     return formattedSections;
   };
+  
+  
   
 
   return (
@@ -368,12 +386,19 @@ export default function SearchBar({ onOpenControlCenter, onOpenUserMenu, isContr
                     )}
 
                     {/* ✅ Display AI Summary if it's available */}
-                    {aiSummary && aiSummary.trim() !== "" && (
-                      <div
-                        className={`notification-brief cmb1 ${searchIntent === "General Question" ? "html-format" : ""}`}
-                        dangerouslySetInnerHTML={{ __html: aiSummary }}
-                      />
+                    {showBrief && notificationBrief && searchIntent === "Combination of Both" ? (
+                      <div className="notification-brief cmb2">
+                        <div className="notification-content">{formatNotificationBrief(notificationBrief)}</div>
+                      </div>
+                    ) : (
+                      aiSummary && aiSummary.trim() !== "" && (
+                        <div
+                          className={`notification-brief cmb1 ${searchIntent === "General Question" ? "html-format" : ""}`}
+                          dangerouslySetInnerHTML={{ __html: aiSummary }}
+                        />
+                      )
                     )}
+
 
                   </div>
                 )}
@@ -444,27 +469,7 @@ export default function SearchBar({ onOpenControlCenter, onOpenUserMenu, isContr
               </div>
             )}
 
-            {notificationBrief && searchIntent !== "General Question" && (
-              <div className="notification-brief-container">
-                <button onClick={() => setIsBriefVisible(!isBriefVisible)}>
-                  {isBriefVisible ? "Hide Brief" : "Show Brief"}
-                </button>
-
-                {isBriefVisible && (
-                  <div className="notification-brief cmb2">
-                    {isFollowUpLoading ? (
-                      <div className="preloader-container">
-                        <div className="spinner"></div>
-                      </div>
-                    ) : (
-                      <div className="notification-content">
-                        {formatNotificationBrief(notificationBrief)}
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
-            )}
+            
 
           </>
         )}

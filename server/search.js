@@ -173,6 +173,7 @@ const ministryKeywords = /\b(written by|published by|issued by)\s+([\w\s]+)\b/i;
 const isGeneralQuestion = generalQuestionWords.test(query);
 const isDocumentSearch = documentKeywords.test(query);
 const requestsSummary = /\bsummarize|notification brief|overview|key points|key takeaways\b/i.test(query.toLowerCase());
+let requestedNotificationBrief = /\b(notification brief|structured summary|generate a brief)\b/i.test(query.toLowerCase());
 const ministryRefs = ["ised", "innovation", "privy council", "finance canada", "health canada"];
 const ministryMentioned = ministryRefs.some(min => query.toLowerCase().includes(min));
 
@@ -195,6 +196,15 @@ const lowerQuery = query.toLowerCase();
 const mentionsAuthorship = /\b(written by|published by|from|authored by)\b/i.test(lowerQuery);
 const mentionsDigitalCharter = lowerQuery.includes("digital charter");
 
+// ⛳ Force HTML summary format for specific Digital Charter queries
+const isDigitalCharterPrinciples = lowerQuery.includes("digital charter") && lowerQuery.includes("principles");
+
+if (isDigitalCharterPrinciples) {
+  console.log("📌 Detected Digital Charter Principles query. Forcing AI HTML Summary.");
+  intent = "Combination of Both";
+  requestedNotificationBrief = false; // Prevent generating a brief
+}
+
 
 const generalQuestionFallback = isGeneralQuestion; // keep consistent naming
 
@@ -202,7 +212,7 @@ const shouldBeCombination =
   (isGeneralQuestion && isDocumentSearch) ||
   requestsSummary ||
   (mentionsMinistry && isDocumentSearch) ||
-  mentionsDigitalCharter ||
+  mentionsDigitalCharter && requestsSummary ||
   (generalQuestionFallback && mentionsAuthorship) ||
   (generalQuestionFallback && ministryMentioned);
 
@@ -219,11 +229,6 @@ console.log(`🔍 Final Query Intent Used: "${intent}"`);
 if (mentionsMinistry) {
   console.log(`📌 Detected Ministry Reference: "${ministryName}"`);
 }
-
-
-
-
-
 
 // ✅ Log final intent before proceeding
 console.log(`🔍 Final Query Intent Used: "${intent}"`);
@@ -425,6 +430,9 @@ if (intent === "General Question") {
     // ✅ AI Summarization for "Combination of Both"
     if (intent === "Combination of Both" && documents.length > 0) {
       console.log("🤖 Summarizing documents with AI...");
+
+      // ✅ Only generate notificationBrief if explicitly requested
+      const wantsNotificationBrief = /\b(notification brief|summarize|summary|key points|takeaways|overview)\b/i.test(query);
     
       let notificationBrief = "No notification brief available.";
       let htmlSummary = "No HTML summary available.";
@@ -498,6 +506,7 @@ if (intent === "General Question") {
           aiSummary: htmlSummary,
           notificationBrief,
           intent,
+          showBrief: requestedNotificationBrief, // ✅ New flag
           citations,
           references: globalReferences,
         });
@@ -511,7 +520,8 @@ if (intent === "General Question") {
 
 
     // ✅ Return both documents and AI summary
-    res.json({ documents, aiSummary, citations, references: globalReferences });
+    res.json({ documents, aiSummary, notificationBrief, intent, citations, references: globalReferences });
+
 
   } catch (error) {
     console.error("❌ Error fetching search results:", error);
