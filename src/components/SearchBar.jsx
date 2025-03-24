@@ -217,7 +217,7 @@ export default function SearchBar({ onOpenControlCenter, onOpenUserMenu, isContr
       //   body: JSON.stringify({ query: searchQuery, previousResults: additionalResults }),
       // });
 
-      const response = await fetch("http://15.223.63.70:5173/api/notification-brief", {
+      const response = await fetch("http://15.223.63.70:3001/api/notification-brief", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ query: searchQuery, previousResults: additionalResults }),
