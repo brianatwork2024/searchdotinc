@@ -455,7 +455,6 @@ Answer this question using your own knowledge and reasoning only.
             **Background:** Provide 5-6 sentences about the topic's history.
             **Context:** Provide 5-6 sentences explaining the current situation.
             **Current State:** Provide 5-6 sentences describing the latest developments.
-            **Importance of Competition:** Provide 5-6 sentences about why this is important.
             **Next Steps:** Provide 5-6 sentences suggesting further actions.
     
             Documents:
@@ -616,9 +615,6 @@ app.get("/api/brief/:documentId", async (req, res) => {
 
             **Current State**  
             Provide 5-6 sentences describing the present situation or developments in the content.
-
-            **The Importance of Competition**  
-            Provide 5-6 sentences highlighting why competition matters in this context.
 
             **Next Steps**  
             Provide 5-6 sentences outlining future actions or expected progress based on the content.
