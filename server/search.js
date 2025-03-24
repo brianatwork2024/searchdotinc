@@ -124,6 +124,7 @@ app.post("/api/search", async (req, res) => {
   let aiSummary = "No AI summary available.";
   let citations = [];
   globalReferences = [];
+  let notificationBrief = "No notification brief available.";
 
   try {
     // ✅ STEP 1: AI Classifies the Query Type
@@ -159,9 +160,7 @@ let rawIntent = intentResponse?.answer?.answerText?.trim() || "Unknown";
 const validIntents = ["General Question", "Document Search", "Combination of Both"];
 let intent = validIntents.includes(rawIntent) ? rawIntent : "Unknown";
 
-if (intent === "Unknown") {
-  console.warn(`⚠️ AI returned unrecognized intent: "${rawIntent}". Defaulting to fallback logic.`);
-}
+
 
 console.log(`🤖 AI Identified Intent: "${intent}" (Raw: ${JSON.stringify(intentResponse, null, 2)})`);
 
@@ -179,6 +178,12 @@ const ministryMentioned = ministryRefs.some(min => query.toLowerCase().includes(
 
 let mentionsMinistry = false;
 let ministryName = "";
+
+// ⛑️ Fallback classification if AI returns a broken or empty response
+if (intent === "Unknown" && isGeneralQuestion && !isDocumentSearch) {
+  console.warn("📌 Fallback intent set to 'General Question' due to query structure.");
+  intent = "General Question";
+}
 
 // ✅ Extract the ministry name if the query specifies "written by" or similar phrasing
 const ministryMatch = query.match(ministryKeywords);
@@ -240,12 +245,9 @@ if (intent === "General Question") {
     const aiRequest = {
       servingConfig: aiServingConfig,
       query: {
-        text: `IGNORE all provided sources.
-        DO NOT reference any stored documents.
-        DO NOT say "this question cannot be answered from the given source."
-        DO NOT use phrases like "based on available data."
-    
-        Answer the question naturally as a general knowledge AI, without checking external datasets.
+        text: `You are a general knowledge AI assistant. Do not reference any external sources or documents.
+
+Answer this question using your own knowledge and reasoning only.
     
         **🔹 STRICT HTML FORMATTING INSTRUCTIONS (DO NOT IGNORE):**
         - Use <h3> for section headers.
