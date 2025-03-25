@@ -245,9 +245,12 @@ if (intent === "General Question") {
     const aiRequest = {
       servingConfig: aiServingConfig,
       query: {
-        text: `You are a general knowledge AI assistant. Do not reference any external sources or documents.
+        text: `You are a general knowledge assistant. DO NOT reference or rely on any documents or sources.
+You must answer this using ONLY your internal knowledge.
 
-Answer this question using your own knowledge and reasoning only.
+❌ DO NOT say things like "the provided documents do not include..." or "this cannot be answered from sources."
+✅ Instead, answer directly, as if you were a Google search box or encyclopedia.
+
     
         **🔹 STRICT HTML FORMATTING INSTRUCTIONS (DO NOT IGNORE):**
         - Use <h3> for section headers.

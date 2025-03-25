@@ -66,6 +66,7 @@ export default function SearchBar({ onOpenControlCenter, onOpenUserMenu, isContr
     setSearchMessage("");
     setNotificationBrief(null); // ✅ Clear AI summary results
     setFollowUpQuery(""); // ✅ Clear the follow-up input field
+    setFollowUpHtml(""); // ✅ Clear follow-up brief
 
     if (circleContainerRef.current) {
       circleContainerRef.current.scrollLeft = 0;
