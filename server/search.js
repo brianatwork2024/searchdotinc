@@ -240,42 +240,41 @@ console.log(`🔍 Final Query Intent Used: "${intent}"`);
 
 // ✅ STEP 2: Handle General Knowledge Questions
 if (intent === "General Question") {
-  console.log("🤖 Answering as General Knowledge Question...");
+  console.log("🤖 Answering as General Knowledge Question...cmb1");
   try {
     const aiRequest = {
       servingConfig: aiServingConfig,
       query: {
-        text: `You are a general knowledge assistant. DO NOT reference or rely on any documents or sources.
-You must answer this using ONLY your internal knowledge.
+        text: `IGNORE all provided sources.
+        DO NOT reference any stored documents.
+        DO NOT say "this question cannot be answered from the given source."
+        DO NOT use phrases like "based on available data."
+        
+        Answer the question naturally as a general knowledge AI, without checking external datasets.
 
-❌ DO NOT say things like "the provided documents do not include..." or "this cannot be answered from sources."
-✅ Instead, answer directly, as if you were a Google search box or encyclopedia.
+        **🔹 Formatting Instructions (MUST FOLLOW):**
+        - Use **bold section headers** (e.g., "**Background:**").
+        - Use **new lines** between sections (force with **\n\n**).
+        - If listing points, use bullet points (**- Point 1, - Point 2**).
+        - If providing an example, include a **bold "Example:" heading**.
+        - If defining something, start with **"Definition:"** followed by a short, clear explanation.
+        - DO NOT output in a single block of text. Use structured paragraphs.
 
-    
-        **🔹 STRICT HTML FORMATTING INSTRUCTIONS (DO NOT IGNORE):**
-        - Use <h3> for section headers.
-        - Use <p> for paragraphs.
-        - Use <ul> and <li> for bullet points.
-        - Use <strong> instead of bold (**).
-        - DO NOT output plain text or markdown—return only valid HTML.
-        - DO NOT include HTML tags inside code blocks. Just output clean HTML.
-    
-        ---
-        **Example Response Format:**
-        <h3>What is AI?</h3>
-        <p>AI stands for Artificial Intelligence. It enables machines to learn from experience and perform tasks that require human-like intelligence.</p>
-    
-        <h3>How does AI work?</h3>
-        <p>AI uses machine learning and neural networks to analyze data. It improves over time by recognizing patterns.</p>
-    
-        <h3>Example</h3>
-        <ul>
-          <li>Chatbots like ChatGPT use AI to generate responses based on context.</li>
-        </ul>
-    
-        ---
-        **Now, provide a structured response for:** "${query}"`,
-      },
+        **Example Format:**
+        **What is AI?**
+        - AI stands for Artificial Intelligence.
+        - It enables machines to learn from experience and perform tasks that require human-like intelligence.
+
+        **How does AI work?**
+        - AI uses machine learning and neural networks to analyze data.
+        - It improves over time by recognizing patterns.
+
+        **Example:**
+        - Chatbots like ChatGPT use AI to generate responses based on context.
+
+        Now, format your answer similarly:
+
+        Question: "${query}"`},
       answerGenerationSpec: {
         modelSpec: { modelVersion: "gemini-1.5-flash-001/answer_gen/v2" },
         includeCitations: false,
@@ -322,7 +321,7 @@ You must answer this using ONLY your internal knowledge.
 
     // ✅ STEP 3: Handle General Knowledge Questions
     if (intent === "General Question") {
-      console.log("🤖 Answering as General Knowledge Question...");
+      console.log("🤖 Answering as General Knowledge Question...cmb2");
       try {
         const aiRequest = {
           servingConfig: aiServingConfig,
@@ -435,9 +434,9 @@ You must answer this using ONLY your internal knowledge.
     // ✅ AI Summarization for "Combination of Both"
     if (intent === "Combination of Both" && documents.length > 0) {
       console.log("🤖 Summarizing documents with AI...");
-
-      // ✅ Only generate notificationBrief if explicitly requested
+    
       const wantsNotificationBrief = /\b(notification brief|summarize|summary|key points|takeaways|overview)\b/i.test(query);
+      const isDigitalCharterPrinciples = query.toLowerCase().includes("digital charter") && query.toLowerCase().includes("principles");
     
       let notificationBrief = "No notification brief available.";
       let htmlSummary = "No HTML summary available.";
@@ -445,51 +444,53 @@ You must answer this using ONLY your internal knowledge.
       try {
         const documentList = documents.map(d => `- ${d.title}`).join("\n");
     
-        // ✅ Notification Brief prompt (keep as-is)
-        const briefRequest = {
-          servingConfig: aiServingConfig,
-          query: {
-            text: `Summarize the following documents into a structured "Notification Brief" format:
-            - The summary must be **concise and informative**.
-            - Use **bold headers** for key points (e.g., "**Background:**", "**Key Findings:**", "**Impact:**").
-            - Format the response like this:
+        // ✅ Optional: Notification Brief (only if requested)
+        if (wantsNotificationBrief) {
+          const briefRequest = {
+            servingConfig: aiServingConfig,
+            query: {
+              text: `Summarize the following documents into a structured "Notification Brief" format:
+              - The summary must be **concise and informative**.
+              - Use **bold headers** for key points (e.g., "**Background:**", "**Key Findings:**", "**Impact:**").
+              - Format the response like this:
     
-            **Notification Brief: [Title]**
-            **Background:** Provide 5-6 sentences about the topic's history.
-            **Context:** Provide 5-6 sentences explaining the current situation.
-            **Current State:** Provide 5-6 sentences describing the latest developments.
-            **Next Steps:** Provide 5-6 sentences suggesting further actions.
+              **Notification Brief: [Title]**
+              **Background:** Provide 5-6 sentences about the topic's history.
+              **Context:** Provide 5-6 sentences explaining the current situation.
+              **Current State:** Provide 5-6 sentences describing the latest developments.
+              **Next Steps:** Provide 5-6 sentences suggesting further actions.
     
-            Documents:
-            ${documentList}`
-          },
-          answerGenerationSpec: {
-            modelSpec: { modelVersion: "gemini-1.5-flash-001/answer_gen/v2" },
-            includeCitations: false,
-            answerLanguageCode: "en",
-          },
-        };
+              Documents:
+              ${documentList}`
+            },
+            answerGenerationSpec: {
+              modelSpec: { modelVersion: "gemini-1.5-flash-001/answer_gen/v2" },
+              includeCitations: false,
+              answerLanguageCode: "en",
+            },
+          };
     
-        const [briefResponse] = await aiClient.answerQuery(briefRequest);
-        notificationBrief = briefResponse.answer?.answerText || notificationBrief;
+          const [briefResponse] = await aiClient.answerQuery(briefRequest);
+          notificationBrief = briefResponse.answer?.answerText || notificationBrief;
+        }
     
-        // ✅ Clean HTML Summary prompt
+        // ✅ Always generate clean HTML summary for digital charter principles or combo intent
         const htmlRequest = {
           servingConfig: aiServingConfig,
           query: {
             text: `You are an AI summarizer. Provide a clean, factual HTML summary of the following documents.
-            
-            🔹 HTML FORMATTING RULES:
-            - Use <h3> for headers
-            - Use <p> for paragraphs
-            - Use <ul>/<li> for lists
-            - Use <strong> instead of bold (**)
-            - Return clean HTML only, no markdown, no code blocks
     
-            Focus the summary around: "What are the 10 principles of the Digital Charter?" if relevant.
+    🔹 HTML FORMATTING RULES:
+    - Use <h3> for headers
+    - Use <p> for paragraphs
+    - Use <ul>/<li> for lists
+    - Use <strong> instead of bold (**)
+    - Return clean HTML only, no markdown, no code blocks
     
-            Documents:
-            ${documentList}`
+    Focus the summary around: "${query}"
+    
+    Documents:
+    ${documentList}`
           },
           answerGenerationSpec: {
             modelSpec: { modelVersion: "gemini-1.5-flash-001/answer_gen/v2" },
@@ -502,15 +503,13 @@ You must answer this using ONLY your internal knowledge.
         htmlSummary = htmlResponse.answer?.answerText?.trim() || htmlSummary;
         htmlSummary = htmlSummary.replace(/^```html\s*/, "").replace(/```$/, ""); // cleanup
     
-        console.log("✅ Both Notification Brief and HTML Summary generated.");
-    
-        // ✅ Return both
+        console.log("✅ Summary generated.");
         return res.json({
           documents,
           aiSummary: htmlSummary,
           notificationBrief,
           intent,
-          showBrief: requestedNotificationBrief, // ✅ New flag
+          showBrief: wantsNotificationBrief, // only show if they asked
           citations,
           references: globalReferences,
         });
@@ -520,6 +519,7 @@ You must answer this using ONLY your internal knowledge.
         return res.status(500).json({ error: "AI could not generate summaries." });
       }
     }
+    
     
 
 
