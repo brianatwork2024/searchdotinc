@@ -10,7 +10,7 @@ export default function App() {
     <div className="app">
       {/* Pass isLoggedIn state to Navbar & Home */}
       <Navbar isLoggedIn={isLoggedIn} setIsLoggedIn={setIsLoggedIn} />
-      <Home isLoggedIn={isLoggedIn} />
+      <Home isLoggedIn={isLoggedIn} setIsLoggedIn={setIsLoggedIn} />
 
       <Footer />
     </div>

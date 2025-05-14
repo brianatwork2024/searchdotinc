@@ -205,3 +205,10 @@
 .profile-icon:hover {
   opacity: 0.8;
 }
+
+.login-error {
+  color: #ff4d4f; /* bright red */
+  font-size: 14px;
+  margin: 8px 0;
+  text-align: center;
+}

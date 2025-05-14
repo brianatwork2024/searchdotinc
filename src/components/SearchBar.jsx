@@ -6,7 +6,7 @@ import bubblesIconHover from "/images/icon-bubbles-hover.svg";
 import listIcon from "/images/icon-list.svg" with { type: "svg" };
 import leafIcon from "/images/icon-leaf.svg" with { type: "svg" };
 
-export default function SearchBar({ onOpenControlCenter, onOpenUserMenu, isControlCenterOpen }) {
+export default function SearchBar({ isLoggedIn, onOpenControlCenter, onOpenUserMenu, isControlCenterOpen }) {
   const [query, setQuery] = useState("");
   const [additionalResults, setAdditionalResults] = useState([]);
   const [followUpQuery, setFollowUpQuery] = useState("");
@@ -25,6 +25,7 @@ export default function SearchBar({ onOpenControlCenter, onOpenUserMenu, isContr
   const [searchIntent, setSearchIntent] = useState(""); // Track search intent
   const [showBrief, setShowBrief] = useState(false);
   const [followUpHtml, setFollowUpHtml] = useState(""); // ✅ Store HTML follow-up
+  
 
 
 
@@ -299,7 +300,11 @@ export default function SearchBar({ onOpenControlCenter, onOpenUserMenu, isContr
 
   return (
     <div className="searchbar-container">
-      <div className={`cc-icon ${showCCIcon ? "visible" : ""}`} onClick={onOpenControlCenter}></div>
+      <div
+        className={`cc-icon${showCCIcon ? " visible" : ""}${!isLoggedIn ? " disabled" : ""}`}
+        onClick={isLoggedIn ? onOpenControlCenter : undefined}
+      />
+
       <div className="searchbar-wrapper">
         {!isControlCenterOpen && (
           <>
@@ -500,7 +505,10 @@ export default function SearchBar({ onOpenControlCenter, onOpenUserMenu, isContr
           </>
         )}
       </div>
-      <div className={`menu-icon ${showMenuIcon ? "visible" : ""}`} onClick={onOpenUserMenu}></div>
+      <div
+        className={`menu-icon${showMenuIcon ? " visible" : ""}${!isLoggedIn ? " disabled" : ""}`}
+        onClick={isLoggedIn ? onOpenUserMenu : undefined}
+      />
     </div>
   );
 }

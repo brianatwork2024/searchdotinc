@@ -1,18 +1,30 @@
 import React, { useState } from "react";
-import "../styles/navbar.css"; // Import styles
-import profilePic from "/images/icon-logged-in.svg"; // Logged-in profile icon
-import signInIcon from "/images/sign-in-icon.svg"; // Default sign-in icon
-import signInIconHover from "/images/sign-in-icon-hover.svg"; // Hover state icon
+import "../styles/navbar.css";
+import profilePic from "/images/icon-logged-in.svg";
+import signInIcon from "/images/sign-in-icon.svg";
+import signInIconHover from "/images/sign-in-icon-hover.svg";
 
-export default function Navbar() {
-  const [isLoggedIn, setIsLoggedIn] = useState(false); // Track login state
-  const [showModal, setShowModal] = useState(false); // Control modal visibility
-  const [isHovered, setIsHovered] = useState(false); // Track hover state
+export default function Navbar({ isLoggedIn, setIsLoggedIn }) {
+  const [showModal, setShowModal] = useState(false);
+  const [isHovered, setIsHovered] = useState(false);
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [loginError, setLoginError] = useState("");
 
-  // Simulate login action
+
   const handleLogin = () => {
-    setIsLoggedIn(true);
-    setShowModal(false); // Close modal after logging in
+    const cleanedUsername = username.trim().toLowerCase();
+    const cleanedPassword = password.trim();
+    
+    if (cleanedUsername === "startech" && cleanedPassword === "StarTech") {
+      setIsLoggedIn(true);
+      setShowModal(false);
+      setUsername("");
+      setPassword("");
+      setLoginError(""); // Clear error on success
+    } else {
+      setLoginError("Invalid credentials. Please try again.");
+    }
   };
 
   return (
@@ -52,15 +64,45 @@ export default function Navbar() {
       {/* Sign-In Modal */}
       {showModal && !isLoggedIn && (
         <div className="modal-overlay" onClick={() => setShowModal(false)}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+          <form
+            className="modal-content"
+            onClick={(e) => e.stopPropagation()}
+            onSubmit={(e) => {
+              e.preventDefault();
+              handleLogin();
+            }}
+          >
             <img src="/images/logo-search-popup.svg" alt="Sign In" className="icon-logo" />
-            <input type="text" placeholder="Username" className="input-field" />
-            <input type="password" placeholder="Password" className="input-field" />
-            <button className="signin-submit" onClick={handleLogin}>SIGN IN</button>
-            <button className="modal-close" onClick={() => setShowModal(false)}>X</button>
-          </div>
+
+            <input
+              type="text"
+              placeholder="Username"
+              className="input-field"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+            />
+
+            <input
+              type="password"
+              placeholder="Password"
+              className="input-field"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+            />
+
+            {loginError && <p className="login-error">{loginError}</p>}
+
+            <button type="submit" className="signin-submit">
+              SIGN IN
+            </button>
+
+            <button type="button" className="modal-close" onClick={() => setShowModal(false)}>
+              X
+            </button>
+          </form>
         </div>
       )}
+
     </>
   );
 }

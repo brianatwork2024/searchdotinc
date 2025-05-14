@@ -1,12 +1,26 @@
 import React, { useState } from "react";
 import SearchBar from "../components/SearchBar";
 import ControlCenter from "../components/ControlCenter";
-import UserMenu from "../components/UserMenu"; // ✅ Import UserMenu
-import "../styles/home.css"; // Ensure this file is correctly imported
+import UserMenu from "../components/UserMenu";
+import "../styles/home.css";
 
-export default function Home({ isLoggedIn }) {
+export default function Home({ isLoggedIn, setIsLoggedIn }) {
   const [isControlCenterOpen, setControlCenterOpen] = useState(false);
   const [isUserMenuOpen, setUserMenuOpen] = useState(false);
+
+  const handleOpenControlCenter = () => {
+    if (isLoggedIn) setControlCenterOpen(true);
+  };
+
+  const handleOpenUserMenu = () => {
+    if (isLoggedIn) setUserMenuOpen(true);
+  };
+
+  const handleLogout = () => {
+    setIsLoggedIn(false);
+    setUserMenuOpen(false); // Close menu after sign out
+    setControlCenterOpen(false);
+  };
 
   return (
     <div className="home-container">
@@ -18,27 +32,30 @@ export default function Home({ isLoggedIn }) {
 
       {/* ✅ Content Overlay */}
       <div>
-        {/* ✅ Show Search Bar only when neither menu is open */}
+        {/* ✅ SearchBar shown when no overlay menus are open */}
         {!isControlCenterOpen && !isUserMenuOpen && (
-          <SearchBar 
-            onOpenControlCenter={() => setControlCenterOpen(true)} 
-            onOpenUserMenu={() => setUserMenuOpen(true)} 
+          <SearchBar
+            isLoggedIn={isLoggedIn}
+            onOpenControlCenter={handleOpenControlCenter}
+            onOpenUserMenu={handleOpenUserMenu}
           />
         )}
 
-        {/* ✅ Control Center - Covers Search Bar when open */}
+        {/* ✅ Control Center overlay */}
         {isControlCenterOpen && (
-          <ControlCenter 
-            isOpen={isControlCenterOpen} 
-            onClose={() => setControlCenterOpen(false)} 
+          <ControlCenter
+            isOpen={isControlCenterOpen}
+            onClose={() => setControlCenterOpen(false)}
+            handleLogout={handleLogout}
           />
         )}
 
-        {/* ✅ User Menu - Covers Search Bar when open */}
+        {/* ✅ User Menu overlay */}
         {isUserMenuOpen && (
-          <UserMenu 
-            isOpen={isUserMenuOpen} 
-            onClose={() => setUserMenuOpen(false)} 
+          <UserMenu
+            isOpen={isUserMenuOpen}
+            onClose={() => setUserMenuOpen(false)}
+            handleLogout={handleLogout}
           />
         )}
       </div>

@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import "../styles/controlcenter.css";
 
-export default function ControlCenter({ isOpen, onClose, handleLogin }) {
+export default function ControlCenter({ isOpen, onClose, handleLogout }) {
   const [activePanel, setActivePanel] = useState("default");
   const [activeSetting, setActiveSetting] = useState("manual");
   const [cursorPosition, setCursorPosition] = useState({ x: 0, y: 0 });
@@ -101,7 +101,7 @@ export default function ControlCenter({ isOpen, onClose, handleLogin }) {
                   : "Maverick, this is your Control Centre"}
               </h2>
             </div>
-            <button className="signout-submit" onClick={handleLogin}>SIGN OUT</button>
+            <button className="signout-submit" onClick={handleLogout}>SIGN OUT</button>
           </div>
 
           {activePanel === "default" && (
