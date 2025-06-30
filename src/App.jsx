@@ -6,7 +6,7 @@ import "./styles/password-gate.css"; // optional custom styles
 
 export default function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false); // Global login state
-  const [isAuthorized, setIsAuthorized] = useState(false); // Site-wide access gate
+  const [isAuthorized, setIsAuthorized] = useState(true); // Site-wide access gate
   const [authUsername, setAuthUsername] = useState("");
   const [authPassword, setAuthPassword] = useState("");
   const [loginError, setLoginError] = useState("");

@@ -292,6 +292,11 @@
   color: #1A2485;
 }
 
+.follow-up-block {
+  max-width: 80%;
+  margin-left: 120px;
+}
+
 /* Additional Results */
 .additional-results {
   margin-top: 20px;
@@ -548,6 +553,7 @@
   color: white;
   font-size: 36px;
   transition: background-color 0.2s ease;
+  display: none;
 }
 
 .search-result-item:hover {

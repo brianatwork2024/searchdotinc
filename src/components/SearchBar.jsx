@@ -25,7 +25,8 @@ export default function SearchBar({ isLoggedIn, onOpenControlCenter, onOpenUserM
   const [searchIntent, setSearchIntent] = useState(""); // Track search intent
   const [showBrief, setShowBrief] = useState(false);
   const [followUpHtml, setFollowUpHtml] = useState(""); // ✅ Store HTML follow-up
-  
+  const [searchHistory, setSearchHistory] = useState([]); // ⬅️ add this
+  const [initialSearchBlock, setInitialSearchBlock] = useState(null);
 
 
 
@@ -126,124 +127,113 @@ export default function SearchBar({ isLoggedIn, onOpenControlCenter, onOpenUserM
   
 
   const handleSearch = async (searchQuery) => {
-    if (searchQuery.trim() === "") return;
-  
-    setIsLoading(true);
-    setSearchMessage(""); 
-    setNotificationBrief(null);
-    setAiSummary("");  // ✅ Reset AI Summary before new search
-    setSearchIntent(""); // ✅ Reset intent before making a new search
-    
-    try {
-      const response = await fetch(apiUrl, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ query: searchQuery }),
-      });
-  
-      if (!response.ok) {
-        console.error("❌ API Response Error:", response.status, response.statusText);
-        throw new Error(`HTTP Error: ${response.status} ${response.statusText}`);
-      }
-  
-      let data;
-      try {
-        data = await response.json(); 
-      } catch (jsonError) {
-        console.error("❌ JSON Parsing Error:", jsonError);
-        throw new Error("Invalid JSON response from server.");
-      }
-  
-      console.log("📩 API Response:", data);
+  if (searchQuery.trim() === "") return;
 
-      // ✅ Store detected search intent
-      if (data.intent) {
-        setSearchIntent(data.intent);
-      }
+  setIsLoading(true);
+  setSearchMessage("");
+  setNotificationBrief(null);
+  setAiSummary("");
+  setSearchIntent("");
+  setShowBrief(false); // hide any old brief by default
 
-      if (data.showBrief) {
-        setShowBrief(true);
-      } else {
-        setShowBrief(false);
-      }
-  
-      // ✅ Store documents
-      if (data.documents && Array.isArray(data.documents)) {
-        setAdditionalResults(data.documents);
-      } else {
-        setAdditionalResults([]);
-      }
-  
-      // ✅ Store AI Summary
-      if (data.aiSummary && data.aiSummary !== "No AI summary available.") {
-        setAiSummary(data.aiSummary);
-      }
+  try {
+    const response = await fetch(apiUrl, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ query: searchQuery }),
+    });
 
-      if (data.notificationBrief && data.notificationBrief !== "No notification brief available.") {
-        setNotificationBrief(data.notificationBrief);
-        setIsBriefVisible(true); // show by default
-      }
-  
-      // ✅ Generate Search Message only if NOT "General Question"
-      if (data.intent !== "General Question") {
-        try {
-          const aiMessage = await generateSearchMessageWithGemini(searchQuery, data.documents.length);
-          setSearchMessage(aiMessage);
-        } catch (aiError) {
-          console.warn("⚠️ AI Message Generation Failed:", aiError);
-          setSearchMessage(`Found ${data.documents.length} results for "${searchQuery}".`);
-        }
-      }
-  
-    } catch (error) {
-      console.error("❌ Search Error:", error);
-      setSearchMessage("⚠️ Something went wrong while searching. Please try again.");
-    } finally {
-      setIsLoading(false);
+    const data = await response.json();
+
+    console.log("📩 API Response:", data);
+
+    if (data.intent) setSearchIntent(data.intent);
+    if (data.showBrief) setShowBrief(true);
+
+    const resultBlock = {
+      query: searchQuery,
+      intent: data.intent,
+      documents: data.documents || [],
+      aiSummary: data.aiSummary,
+      notificationBrief: data.notificationBrief,
+    };
+
+    setInitialSearchBlock(resultBlock);
+    setFollowUpResults([]);
+
+    // ✅ Append to history
+    setSearchHistory([ resultBlock ]);
+
+    // Still update latest visible results if needed
+    setAdditionalResults(data.documents || []);
+    if (data.notificationBrief && data.notificationBrief !== "No notification brief available.")
+      setNotificationBrief(data.notificationBrief);
+    if (data.aiSummary && data.aiSummary !== "No AI summary available.")
+      setAiSummary(data.aiSummary);
+
+    // AI message (optional for first result only)
+    if (data.intent !== "General Question") {
+      //const aiMessage = await generateSearchMessage(searchQuery, data.documents.length);
+      //setSearchMessage(aiMessage);
     }
-  };
+  } catch (error) {
+    console.error("❌ Search Error:", error);
+    setSearchMessage("⚠️ Something went wrong while searching.");
+  } finally {
+    setIsLoading(false);
+  }
+};
   
 
   const handleFollowUpSearch = async (searchQuery) => {
-    if (searchQuery.trim() === "") return;
-  
-    setIsFollowUpLoading(true);
-  
-    console.log("🔍 Follow-Up Query:", searchQuery);
-    console.log("📜 Sending Previous Results:", additionalResults);
-  
-    try {
-      // const response = await fetch("http://localhost:3001/api/notification-brief", {
-      //   method: "POST",
-      //   headers: { "Content-Type": "application/json" },
-      //   body: JSON.stringify({ query: searchQuery, previousResults: additionalResults }),
-      // });
+  if (searchQuery.trim() === "") return;
 
-      const response = await fetch("http://15.223.63.70:3001/api/notification-brief", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ query: searchQuery, previousResults: additionalResults }),
-      });
-  
-  
-      const data = await response.json();
-  
-      console.log("📩 API Response:", data);
-  
-      if (response.ok && data.aiSummary) {
-        const cleanedHtml = data.aiSummary.replace(/^```html\s*/, "").replace(/```$/, "").trim();
-        setFollowUpHtml(cleanedHtml);
-      } else {
-        setFollowUpHtml("No additional details found.");
-      }
-      
-    } catch (error) {
-      console.error("❌ Error fetching follow-up search results:", error);
-      setFollowUpBrief("Error retrieving follow-up results.");
-    } finally {
-      setIsFollowUpLoading(false);
-    }
-  };
+  setFollowUpQuery(""); // Clear input
+  setIsFollowUpLoading(true);
+  setFollowUpHtml(""); // Clear previous follow-up
+  setFollowUpResults([]); // Clear previous follow-up results
+
+  try {
+    const response = await fetch(apiUrl, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ query: searchQuery }),
+    });
+
+    const data = await response.json();
+
+    console.log("📩 Follow-Up API Response:", data);
+
+    // build a follow-up block
+const followUpBlock = {
+  query: searchQuery,
+  intent: data.intent,
+  documents: data.documents || [],
+  notificationBrief: data.notificationBrief,
+  aiSummary: data.aiSummary,
+  // if it’s a General Question, the AI answer is in documents[0].content
+  html:
+    data.intent === "General Question"
+      ? data.documents?.[0]?.content || ""
+      : // otherwise prefer aiSummary, then notificationBrief (if non-default)
+      data.aiSummary ||
+        (data.notificationBrief &&
+          data.notificationBrief !== "No notification brief available."
+          ? data.notificationBrief
+          : "")
+};
+
+
+// append it to your history array
+setSearchHistory(prev => [...prev, followUpBlock]);
+
+  } catch (error) {
+    console.error("❌ Follow-up error:", error);
+  } finally {
+    setIsFollowUpLoading(false);
+  }
+};
+
   
   
   
@@ -323,7 +313,7 @@ export default function SearchBar({ isLoggedIn, onOpenControlCenter, onOpenUserM
                   }
                 }}
               />
-              <img src={searchIcon} alt="Search" className="search-button" onClick={() => handleSearch(query, setAdditionalResults, setIsLoading)} />
+              <img src={searchIcon} alt="Search" className="search-button" onClick={() => handleSearch(query)} />
             </form>
 
             {isLoading && <div className="preloader-container"><div className="spinner"></div></div>}
@@ -369,62 +359,33 @@ export default function SearchBar({ isLoggedIn, onOpenControlCenter, onOpenUserM
 
                 {activeTab === "list" && (
                   <div className="search-results">
-                    {/* ✅ Ensure we have results before rendering */}
-                    {additionalResults.length > 0 ? (
-                      additionalResults.map((doc, index) => (
-                        <div key={index} className="search-result-item">
-                          {/* ✅ Display AI Response for General Questions */}
-                          {doc.id === "ai-answer" ? (
-                            <div className="ai-answer" dangerouslySetInnerHTML={{ __html: doc.content }} />
-                          ) : (
-                            /* ✅ Display document search results */
-                            <p>
-                              {doc.link ? (
-                                <a href={doc.link} target="_blank" rel="noopener noreferrer" className="search-title-link">
-                                  {doc.title}
-                                </a>
-                              ) : (
-                                <span>{doc.title}</span>
-                              )}
-                            </p>
-                          )}
-                        </div>
-                      ))
+                    {searchHistory.length > 0 ? (
+                      <>
+                        {/* … initial-results code above … */}
+
+                        {/* render the summary */}
+                        {(() => {
+                          const brief = searchHistory[0].notificationBrief;
+                          const html  = searchHistory[0].aiSummary;
+                          const hasRealBrief = brief && brief !== "No notification brief available.";
+                          const toShow = hasRealBrief ? brief : html;
+                          const cls    = hasRealBrief ? "cmb2" : "cmb1";
+                          return toShow ? (
+                            <div
+                              className={`notification-brief ${cls}`}
+                              dangerouslySetInnerHTML={{ __html: toShow }}
+                            />
+                          ) : null;
+                        })()}
+
+                        {/* … follow-up input + follow-up-blocks … */}
+                      </>
                     ) : (
-                      /* ✅ Display message if no results are found */
                       <p className="no-results">No search results found.</p>
                     )}
-
-                    
-
-                    {/* ✅ Display AI Summary if it's available */}
-                    {notificationBrief && searchIntent === "Combination of Both" ? (
-                      <div className="notification-brief cmb2">
-                        {notificationBrief.includes("<h3>") ? (
-                          <div className="notification-content" dangerouslySetInnerHTML={{ __html: notificationBrief }} />
-                        ) : (
-                          <div className="notification-content">{formatNotificationBrief(notificationBrief)}</div>
-                        )}
-                      </div>
-                    ) : (
-                      aiSummary && aiSummary.trim() !== "" && (
-                        <div
-                          className={`notification-brief cmb1 ${searchIntent === "General Question" ? "html-format" : ""}`}
-                          dangerouslySetInnerHTML={{ __html: aiSummary }}
-                        />
-                      )
-                    )}
-
-                    {followUpHtml && followUpHtml.trim() !== "" && (
-                      <div className="notification-brief follow-up-brief">
-                        <div dangerouslySetInnerHTML={{ __html: followUpHtml }} />
-                      </div>
-                    )}
-
-
-
                   </div>
                 )}
+
 
                 {activeTab === "circles" && (
                   <div
@@ -450,36 +411,99 @@ export default function SearchBar({ isLoggedIn, onOpenControlCenter, onOpenUserM
 
             {/* ✅ Follow-Up Search - Outside of Additional Results Div */}
             {additionalResults.length > 0 && (
-              <div className="follow-up-search">
-                <form className="search-bar follow-up" style={{ width: `${inputWidth}px`, maxWidth: "80%" }}>
-                  <textarea
-                    ref={followUpInputRef}
-                    placeholder="Ask a follow-up question..."
-                    value={followUpQuery}
-                    onChange={(e) => setFollowUpQuery(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter" && !e.shiftKey) {
-                        e.preventDefault(); // Prevent new line
-                        handleFollowUpSearch(followUpQuery, setFollowUpResults, setIsFollowUpLoading, additionalResults);
-                      }
-                    }}
-                    className="search-input"
-                  />
-                  <img
-                    src={searchIcon}
-                    alt="Search"
-                    className="search-button"
-                    onClick={() => handleFollowUpSearch(followUpQuery, setFollowUpResults, setIsFollowUpLoading, additionalResults)}
-                  />
-                </form>
+  <>
+    {/* Follow-Up Input */}
+    <div className="follow-up-search">
+      <form
+        className="search-bar follow-up"
+        style={{ width: `${inputWidth}px`, maxWidth: "80%" }}
+        onSubmit={e => {
+          e.preventDefault();
+          handleFollowUpSearch(followUpQuery);
+        }}
+      >
+        <textarea
+          ref={followUpInputRef}
+          placeholder="Ask a follow-up question..."
+          value={followUpQuery}
+          onChange={e => setFollowUpQuery(e.target.value)}
+          className="search-input"
+        />
+        <button type="submit" className="search-button">
+          <img src={searchIcon} alt="Search" />
+        </button>
+      </form>
+      {isFollowUpLoading && (
+        <div className="preloader-container">
+          <div className="spinner" />
+        </div>
+      )}
+    </div>
 
-                {isFollowUpLoading && (
-                  <div className="preloader-container">
-                    <div className="spinner"></div>
-                  </div>
-                )}
-              </div>
-            )}
+    {/* Render each appended follow-up answer */}
+    {searchHistory.slice(1).map((block, idx) => {
+  return (
+    <div key={idx} className="follow-up-block">
+      <h4>Answer to: “{block.query}”</h4>
+
+      {/* Document links */}
+      {block.documents.length > 0 && (
+        <div className="follow-up-results">
+          {block.documents.map((doc, i) => (
+            <div key={i} className="search-result-item">
+              {doc.link ? (
+                <a href={doc.link} target="_blank" rel="noopener noreferrer">
+                  {doc.title}
+                </a>
+              ) : (
+                <span>{doc.title}</span>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* HTML summary, preferring aiSummary */}
+      {block.html && (
+  <div
+    className="notification-brief follow-up-summary"
+    dangerouslySetInnerHTML={{ __html: block.html }}
+  />
+)}
+
+      {/* Nested follow-up bar */}
+      <div className="follow-up-search nested">
+        <form
+          className="search-bar follow-up"
+          style={{ width: `${inputWidth}px`, maxWidth: "80%" }}
+          onSubmit={(e) => {
+            e.preventDefault();
+            handleFollowUpSearch(followUpQuery);
+          }}
+        >
+          <textarea
+            ref={followUpInputRef}
+            placeholder="Ask another follow-up…"
+            value={followUpQuery}
+            onChange={(e) => setFollowUpQuery(e.target.value)}
+            className="search-input"
+          />
+          <button type="submit" className="search-button">
+            <img src={searchIcon} alt="Search" />
+          </button>
+        </form>
+        {isFollowUpLoading && (
+          <div className="preloader-container">
+            <div className="spinner" />
+          </div>
+        )}
+      </div>
+    </div>
+  );
+})}
+
+  </>
+)}
 
             {/* ✅ Show AI Summary if it was generated by a follow-up query */}
             {followUpQuery && aiSummary && searchIntent === "General Question" && (
@@ -487,20 +511,6 @@ export default function SearchBar({ isLoggedIn, onOpenControlCenter, onOpenUserM
                 <div dangerouslySetInnerHTML={{ __html: aiSummary }} />
               </div>
             )}
-
-
-            {/* ✅ Follow-Up Search Results */}
-            {followUpResults.length > 0 && (
-              <div className="search-results">
-                {followUpResults.map((doc) => (
-                  <div key={doc.id} className="search-result-item">
-                    <p>{doc.title}</p>
-                  </div>
-                ))}
-              </div>
-            )}
-
-            
 
           </>
         )}
