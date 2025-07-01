@@ -238,6 +238,13 @@ if (mentionsMinistry) {
 // ✅ Log final intent before proceeding
 console.log(`🔍 Final Query Intent Used: "${intent}"`);
 
+ // ─── FORCE DOCUMENT SEARCH FOR TOPICS ───
+    const docKeywords = /\b(estate planning|philanthropy|insurance|life insurance)\b/i;
+    if (docKeywords.test(query)) {
+      console.warn("📌 Detected topic keywords; forcing Document Search");
+      intent = "Combination of Both";
+    }
+
 // ✅ STEP 2: Handle General Knowledge Questions
 if (intent === "General Question") {
   console.log("🤖 Answering as General Knowledge Question...cmb1");
@@ -405,8 +412,8 @@ if (intent === "General Question") {
         const derivedFields = doc?.derivedStructData?.fields ?? {}; 
 
         const title = fields?.title?.stringValue || doc?.title || "No Title Available";
-        const rawDate = fields?.publish_date?.stringValue || "No Date Available";
-        let formattedDate = rawDate !== "No Date Available" ? format(new Date(rawDate), "MMMM d, yyyy") : "No Date Available";
+        const rawDate = fields?.publish_date?.stringValue || " ";
+        let formattedDate = rawDate !== " " ? format(new Date(rawDate), "MMMM d, yyyy") : " ";
 
         let filePath = derivedFields?.link?.stringValue || "No Link Available";
         if (filePath.startsWith("gs://")) {

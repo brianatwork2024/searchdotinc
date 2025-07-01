@@ -38,6 +38,8 @@ export default function SearchBar({ isLoggedIn, onOpenControlCenter, onOpenUserM
   const scrollLeft = useRef(0);
   const followUpInputRef = useRef(null);
 
+  const [nestedQueries, setNestedQueries] = useState({});
+
   const inputRef = useRef(null); // ✅ Create a reference for the input field
 
   const isLocal = window.location.hostname === "localhost"; // Determines if running locally
@@ -67,8 +69,6 @@ export default function SearchBar({ isLoggedIn, onOpenControlCenter, onOpenUserM
     setAdditionalResults([]);
     setSearchMessage("");
     setNotificationBrief(null); // ✅ Clear AI summary results
-    setFollowUpQuery(""); // ✅ Clear the follow-up input field
-    setFollowUpHtml(""); // ✅ Clear follow-up brief
 
     if (circleContainerRef.current) {
       circleContainerRef.current.scrollLeft = 0;
@@ -130,7 +130,7 @@ export default function SearchBar({ isLoggedIn, onOpenControlCenter, onOpenUserM
   if (searchQuery.trim() === "") return;
 
   setIsLoading(true);
-  setSearchMessage("");
+
   setNotificationBrief(null);
   setAiSummary("");
   setSearchIntent("");
@@ -156,6 +156,7 @@ export default function SearchBar({ isLoggedIn, onOpenControlCenter, onOpenUserM
       documents: data.documents || [],
       aiSummary: data.aiSummary,
       notificationBrief: data.notificationBrief,
+      references: data.references || []
     };
 
     setInitialSearchBlock(resultBlock);
@@ -188,10 +189,7 @@ export default function SearchBar({ isLoggedIn, onOpenControlCenter, onOpenUserM
   const handleFollowUpSearch = async (searchQuery) => {
   if (searchQuery.trim() === "") return;
 
-  setFollowUpQuery(""); // Clear input
   setIsFollowUpLoading(true);
-  setFollowUpHtml(""); // Clear previous follow-up
-  setFollowUpResults([]); // Clear previous follow-up results
 
   try {
     const response = await fetch(apiUrl, {
@@ -211,6 +209,7 @@ const followUpBlock = {
   documents: data.documents || [],
   notificationBrief: data.notificationBrief,
   aiSummary: data.aiSummary,
+  references: data.references || [],
   // if it’s a General Question, the AI answer is in documents[0].content
   html:
     data.intent === "General Question"
@@ -378,6 +377,22 @@ setSearchHistory(prev => [...prev, followUpBlock]);
                           ) : null;
                         })()}
 
+                        {/* ─── Initial References ─── */}
+                        {searchHistory[0].documents?.length > 0 && (
+                          <div className="references">
+                            <h5>Referenced Documents:</h5>
+                            <ul>
+                              {searchHistory[0].documents.map((doc, i) => (
+                                <li key={i}>
+                                  <a href={doc.link} target="_blank" rel="noopener noreferrer">
+                                    {doc.title}
+                                  </a>
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+
                         {/* … follow-up input + follow-up-blocks … */}
                       </>
                     ) : (
@@ -420,13 +435,26 @@ setSearchHistory(prev => [...prev, followUpBlock]);
         onSubmit={e => {
           e.preventDefault();
           handleFollowUpSearch(followUpQuery);
+          
         }}
+        
       >
         <textarea
           ref={followUpInputRef}
           placeholder="Ask a follow-up question..."
           value={followUpQuery}
           onChange={e => setFollowUpQuery(e.target.value)}
+          onKeyDown={e => {
+            if (e.key === "Enter" && !e.shiftKey) {
+              e.preventDefault();
+              handleFollowUpSearch(followUpQuery);
+
+              followUpContainerRef.current?.scrollIntoView({
+                behavior: 'smooth',
+                block: 'start'
+              });
+            }
+          }}
           className="search-input"
         />
         <button type="submit" className="search-button">
@@ -463,6 +491,8 @@ setSearchHistory(prev => [...prev, followUpBlock]);
         </div>
       )}
 
+      
+
       {/* HTML summary, preferring aiSummary */}
       {block.html && (
   <div
@@ -471,33 +501,59 @@ setSearchHistory(prev => [...prev, followUpBlock]);
   />
 )}
 
+{/* ─── Follow-Up References ─── */}
+      {block.documents?.length > 0 && (
+        <div className="references">
+          <h5>Referenced Documents:</h5>
+          <ul>
+            {block.documents.map((doc, j) => (
+              <li key={j}>
+                <a href={doc.link} target="_blank" rel="noopener noreferrer">
+                  {doc.title}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
       {/* Nested follow-up bar */}
-      <div className="follow-up-search nested">
-        <form
-          className="search-bar follow-up"
-          style={{ width: `${inputWidth}px`, maxWidth: "80%" }}
-          onSubmit={(e) => {
-            e.preventDefault();
-            handleFollowUpSearch(followUpQuery);
-          }}
-        >
-          <textarea
-            ref={followUpInputRef}
-            placeholder="Ask another follow-up…"
-            value={followUpQuery}
-            onChange={(e) => setFollowUpQuery(e.target.value)}
-            className="search-input"
-          />
-          <button type="submit" className="search-button">
-            <img src={searchIcon} alt="Search" />
-          </button>
-        </form>
-        {isFollowUpLoading && (
-          <div className="preloader-container">
-            <div className="spinner" />
-          </div>
-        )}
-      </div>
+<div className="follow-up-search nested">
+  <form
+    className="search-bar follow-up"
+    style={{ width: `${inputWidth}px`, maxWidth: "100%" }}
+    onSubmit={e => {
+      e.preventDefault();
+      const nestedQ = nestedQueries[idx] || "";
+      handleFollowUpSearch(nestedQ);
+      // clear *only* this nested bar’s value
+      setNestedQueries(prev => ({ ...prev, [idx]: "" }));
+    }}
+    onKeyDown={e => {
+      if (e.key === "Enter" && !e.shiftKey) {
+        e.preventDefault();
+        handleFollowUpSearch(nestedQ);
+      }
+    }}
+  >
+    <textarea
+      placeholder="Ask another follow-up…"
+      value={nestedQueries[idx] || ""}
+      onChange={e =>
+        setNestedQueries(prev => ({ ...prev, [idx]: e.target.value }))
+      }
+      className="search-input"
+    />
+    <button type="submit" className="search-button">
+      <img src={searchIcon} alt="Search" />
+    </button>
+  </form>
+  {isFollowUpLoading && (
+    <div className="preloader-container">
+      <div className="spinner" />
+    </div>
+  )}
+</div>
     </div>
   );
 })}

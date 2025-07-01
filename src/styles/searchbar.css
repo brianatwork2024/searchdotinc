@@ -27,6 +27,16 @@
   margin-left: 120px;
 }
 
+.follow-up-search.nested .search-bar {
+  margin-left: 0;
+}
+
+.follow-up-search button {
+  background: none;
+}
+.follow-up-block h4 {
+  font-size: 32px;
+}
 /* Search Input (Text Area) */
 .search-input {
   flex-grow: 1;
@@ -651,6 +661,22 @@
   color: rgba(255, 255, 255, 0.9);
   margin: 0;
   line-height: 1.5;
+}
+
+.references {
+  margin-top: 25px;
+}
+.references h5 {
+  font-size: 32px;
+}
+.references ul {
+  list-style: none;
+  font-size: 32px;
+}
+
+
+.references ul li a {
+  color: #fff;;
 }
 
 .circle-container {
