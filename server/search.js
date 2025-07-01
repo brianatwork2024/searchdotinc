@@ -245,6 +245,14 @@ console.log(`🔍 Final Query Intent Used: "${intent}"`);
       intent = "Combination of Both";
     }
 
+// ─── FORCE COMBO‐SEARCH FOR FOLLOW-UP PHRASES ───
+const followUpKeywords =
+  /\b(provide more detail|add more context|more info|expand|elaborate|additional context)\b/i;
+if (followUpKeywords.test(query)) {
+  console.warn("📌 Detected follow-up keywords; forcing Combination of Both");
+  intent = "Combination of Both";
+}
+
 // ✅ STEP 2: Handle General Knowledge Questions
 if (intent === "General Question") {
   console.log("🤖 Answering as General Knowledge Question...cmb1");

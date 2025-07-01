@@ -187,51 +187,57 @@ export default function SearchBar({ isLoggedIn, onOpenControlCenter, onOpenUserM
   
 
   const handleFollowUpSearch = async (searchQuery) => {
-  if (searchQuery.trim() === "") return;
+  if (!searchQuery.trim()) return;
 
   setIsFollowUpLoading(true);
 
   try {
-    const response = await fetch(apiUrl, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ query: searchQuery }),
-    });
+    // Detect “add more context” style follow-ups
+    const isNotificationBrief = /\b(add more context|provide more detail|expand|elaborate|more info)\b/i.test(
+      searchQuery
+    );
 
+    // Choose endpoint and request body
+    const endpoint = isNotificationBrief ? "/notification-brief" : "/search";
+    const body = isNotificationBrief
+      ? { query: searchQuery, previousResults: searchHistory.slice(-1)[0].documents }
+      : { query: searchQuery };
+
+    const response = await fetch(
+      apiUrl.replace("/search", endpoint),
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      }
+    );
     const data = await response.json();
-
     console.log("📩 Follow-Up API Response:", data);
 
-    // build a follow-up block
-const followUpBlock = {
-  query: searchQuery,
-  intent: data.intent,
-  documents: data.documents || [],
-  notificationBrief: data.notificationBrief,
-  aiSummary: data.aiSummary,
-  references: data.references || [],
-  // if it’s a General Question, the AI answer is in documents[0].content
-  html:
-    data.intent === "General Question"
-      ? data.documents?.[0]?.content || ""
-      : // otherwise prefer aiSummary, then notificationBrief (if non-default)
-      data.aiSummary ||
-        (data.notificationBrief &&
-          data.notificationBrief !== "No notification brief available."
-          ? data.notificationBrief
-          : "")
-};
-
-
-// append it to your history array
-setSearchHistory(prev => [...prev, followUpBlock]);
-
+    if (isNotificationBrief) {
+      // append just the new HTML snippet
+      setSearchHistory((prev) => [
+        ...prev,
+        { query: searchQuery, html: data.aiSummary },
+      ]);
+    } else {
+      // full follow-up (fresh documents + summary)
+      setSearchHistory((prev) => [
+        ...prev,
+        {
+          query: searchQuery,
+          documents: data.documents || [],
+          html: data.aiSummary || data.notificationBrief,
+        },
+      ]);
+    }
   } catch (error) {
     console.error("❌ Follow-up error:", error);
   } finally {
     setIsFollowUpLoading(false);
   }
 };
+
 
   
   
@@ -449,10 +455,7 @@ setSearchHistory(prev => [...prev, followUpBlock]);
               e.preventDefault();
               handleFollowUpSearch(followUpQuery);
 
-              followUpContainerRef.current?.scrollIntoView({
-                behavior: 'smooth',
-                block: 'start'
-              });
+              
             }
           }}
           className="search-input"
@@ -469,94 +472,110 @@ setSearchHistory(prev => [...prev, followUpBlock]);
     </div>
 
     {/* Render each appended follow-up answer */}
-    {searchHistory.slice(1).map((block, idx) => {
-  return (
-    <div key={idx} className="follow-up-block">
-      <h4>Answer to: “{block.query}”</h4>
+    {/* ─── Render Follow-Up Blocks ─── */}
+{searchHistory.length > 1 &&
+  searchHistory.slice(1).map((block, idx) => {
+    const docs = block.documents || [];
 
-      {/* Document links */}
-      {block.documents.length > 0 && (
-        <div className="follow-up-results">
-          {block.documents.map((doc, i) => (
-            <div key={i} className="search-result-item">
-              {doc.link ? (
-                <a href={doc.link} target="_blank" rel="noopener noreferrer">
-                  {doc.title}
-                </a>
-              ) : (
-                <span>{doc.title}</span>
-              )}
-            </div>
-          ))}
-        </div>
-      )}
+    return (
+      <div key={idx} className="follow-up-block">
+        <h4>Answer to: “{block.query}”</h4>
 
-      
-
-      {/* HTML summary, preferring aiSummary */}
-      {block.html && (
-  <div
-    className="notification-brief follow-up-summary"
-    dangerouslySetInnerHTML={{ __html: block.html }}
-  />
-)}
-
-{/* ─── Follow-Up References ─── */}
-      {block.documents?.length > 0 && (
-        <div className="references">
-          <h5>Referenced Documents:</h5>
-          <ul>
-            {block.documents.map((doc, j) => (
-              <li key={j}>
-                <a href={doc.link} target="_blank" rel="noopener noreferrer">
-                  {doc.title}
-                </a>
-              </li>
+        {/* Document links */}
+        {docs.length > 0 && (
+          <div className="follow-up-results">
+            {docs.map((doc, i) => (
+              <div key={i} className="search-result-item">
+                {doc.link ? (
+                  <a
+                    href={doc.link}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="search-title-link"
+                  >
+                    {doc.title}
+                  </a>
+                ) : (
+                  <span>{doc.title}</span>
+                )}
+              </div>
             ))}
-          </ul>
-        </div>
-      )}
+          </div>
+        )}
 
-      {/* Nested follow-up bar */}
-<div className="follow-up-search nested">
-  <form
-    className="search-bar follow-up"
-    style={{ width: `${inputWidth}px`, maxWidth: "100%" }}
-    onSubmit={e => {
-      e.preventDefault();
-      const nestedQ = nestedQueries[idx] || "";
-      handleFollowUpSearch(nestedQ);
-      // clear *only* this nested bar’s value
-      setNestedQueries(prev => ({ ...prev, [idx]: "" }));
-    }}
-    onKeyDown={e => {
-      if (e.key === "Enter" && !e.shiftKey) {
-        e.preventDefault();
-        handleFollowUpSearch(nestedQ);
-      }
-    }}
-  >
-    <textarea
-      placeholder="Ask another follow-up…"
-      value={nestedQueries[idx] || ""}
-      onChange={e =>
-        setNestedQueries(prev => ({ ...prev, [idx]: e.target.value }))
-      }
-      className="search-input"
-    />
-    <button type="submit" className="search-button">
-      <img src={searchIcon} alt="Search" />
-    </button>
-  </form>
-  {isFollowUpLoading && (
-    <div className="preloader-container">
-      <div className="spinner" />
-    </div>
-  )}
-</div>
-    </div>
-  );
-})}
+        {/* HTML summary */}
+        {block.html && (
+          <div
+            className="notification-brief follow-up-summary"
+            dangerouslySetInnerHTML={{ __html: block.html }}
+          />
+        )}
+
+        {/* References */}
+        {docs.length > 0 && (
+          <div className="references">
+            <h5>Referenced Documents:</h5>
+            <ul>
+              {docs.map((doc, j) => (
+                <li key={j}>
+                  <a
+                    href={doc.link}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    {doc.title}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        {/* Nested follow-up input */}
+        <div className="follow-up-search nested">
+          <form
+            className="search-bar follow-up"
+            style={{ width: `${inputWidth}px`, maxWidth: "100%" }}
+            onSubmit={(e) => {
+              e.preventDefault();
+              const nestedQ = nestedQueries[idx] || "";
+              handleFollowUpSearch(nestedQ);
+              setNestedQueries((prev) => ({ ...prev, [idx]: "" }));
+            }}
+          >
+            <textarea
+              placeholder="Ask another follow-up…"
+              value={nestedQueries[idx] || ""}
+              onChange={(e) =>
+                setNestedQueries((prev) => ({
+                  ...prev,
+                  [idx]: e.target.value,
+                }))
+              }
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && !e.shiftKey) {
+                  e.preventDefault();
+                  const nestedQ = nestedQueries[idx] || "";
+                  handleFollowUpSearch(nestedQ);
+                  setNestedQueries((prev) => ({ ...prev, [idx]: "" }));
+                }
+              }}
+              className="search-input"
+            />
+            <button type="submit" className="search-button">
+              <img src={searchIcon} alt="Search" />
+            </button>
+          </form>
+          {isFollowUpLoading && (
+            <div className="preloader-container">
+              <div className="spinner" />
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  })}
+
 
   </>
 )}
