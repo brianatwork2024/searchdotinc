@@ -505,7 +505,12 @@ if (intent === "General Question") {
     Focus the summary around: "${query}"
     
     Documents:
-    ${documentList}`
+    ${documentList}
+            Additional Instruction:
+            - Only include case studies explicitly described in those documents. Do NOT include any general celebrity anecdotes (e.g. famous people who died intestate).
+            - Do NOT include any general celebrity anecdotes (e.g. famous people who died intestate).
+            - Do NOT state “details not provided” or otherwise mention missing information.`
+    
           },
           answerGenerationSpec: {
             modelSpec: { modelVersion: "gemini-1.5-flash-001/answer_gen/v2" },
@@ -513,7 +518,7 @@ if (intent === "General Question") {
             answerLanguageCode: "en",
           },
         };
-    
+        
         const [htmlResponse] = await aiClient.answerQuery(htmlRequest);
         htmlSummary = htmlResponse.answer?.answerText?.trim() || htmlSummary;
         htmlSummary = htmlSummary.replace(/^```html\s*/, "").replace(/```$/, ""); // cleanup

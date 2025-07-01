@@ -191,8 +191,8 @@ const stripFences = (html = "") =>
 
   async function handleFollowUpSearch(searchQuery) {
   if (!searchQuery.trim()) return;
-
-  setIsFollowUpLoading(true);
+    setFollowUpQuery("");
+    setIsFollowUpLoading(true);
 
   try {
     const isNotificationBrief = /\b(add more context|provide more detail|expand|elaborate|more info)\b/i.test(searchQuery);
